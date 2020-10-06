@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="ko">
+
+<head>
+    <title>Playground::메인</title>
+    <style>
+        table {
+            border-style: solid;
+            border-spacing: 0;
+        }
+
+        th, td {
+            text-align: center;
+            padding: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Database Meta Data</h2>
+
+    <table>
+        <tr>
+            <th>No</th>
+            <th>URL</th>
+            <th>Driver Name</th>
+            <th>Driver Version</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td th:text="${dbMetaData.getURL()}"></td>
+            <td th:text="${dbMetaData.getDriverName()}"></td>
+            <td th:text="${dbMetaData.getDriverVersion()}"></td>
+        </tr>
+    </table>
+</body>
+
+</html>
