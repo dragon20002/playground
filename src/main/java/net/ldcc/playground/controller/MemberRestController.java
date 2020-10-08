@@ -21,10 +21,10 @@ public class MemberRestController {
     }
 
     @GetMapping("/api/members/{id}")
-    public ResponseEntity<Member> getMember(@PathVariable String id) {
+    public ResponseEntity<Member> getMember(@PathVariable Long id) {
         Member member;
         try {
-            member = memberService.getMember(id);
+            member = memberService.getMemberSec(id);
         } catch (Exception e) {
             logger.debug("Fail to getMember id={}", id);
             logger.debug(e.getMessage());
@@ -35,7 +35,7 @@ public class MemberRestController {
 
     @GetMapping("/api/members")
     public ResponseEntity<List<Member>> getMembers() {
-        List<Member> memberList = memberService.getMembers();
+        List<Member> memberList = memberService.getMembersSec();
 
         return new ResponseEntity<>(memberList, HttpStatus.OK);
     }
@@ -49,11 +49,11 @@ public class MemberRestController {
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         }
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @DeleteMapping("/api/members/{id}")
-    public ResponseEntity<Void> deleteMember(@PathVariable String id) {
+    public ResponseEntity<Void> deleteMember(@PathVariable Long id) {
         try {
             memberService.deleteMember(id);
         } catch (Exception e) {

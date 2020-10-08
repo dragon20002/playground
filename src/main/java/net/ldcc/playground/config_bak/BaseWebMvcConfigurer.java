@@ -1,4 +1,4 @@
-package net.ldcc.playground.config;
+package net.ldcc.playground.config_bak;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -8,9 +8,9 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@Configuration
+//@Configuration
 public class BaseWebMvcConfigurer implements WebMvcConfigurer {
-    @Autowired
+//    @Autowired
     private WebApplicationContext context;
 
     /**
@@ -19,7 +19,7 @@ public class BaseWebMvcConfigurer implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE")
+                .allowedMethods("HEAD", "OPTIONS", "GET", "POST", "PUT", "DELETE")
                 .allowedOrigins("http://localhost:8080",
                         "http://localhost:8081");
     }
@@ -53,8 +53,8 @@ public class BaseWebMvcConfigurer implements WebMvcConfigurer {
 //                .addPathPatterns("/**");
 
         // 요청 권한 Interceptor에 대한 White-List를 추가한다.
-//        registry.addInterceptor(authInterceptorAdapter)
-//                .excludePathPatterns("/", "/login", "/error");
+        registry.addInterceptor(authInterceptorAdapter)
+                .excludePathPatterns("/", "/login", "/error");
     }
 
 }

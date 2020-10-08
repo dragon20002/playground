@@ -2,6 +2,8 @@ package net.ldcc.playground.model;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.text.DateFormat;
@@ -11,14 +13,26 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-public class Member {
+public class Member implements UserDetails {
     private static final Logger logger = LoggerFactory.getLogger(Member.class);
+
+    public Member() {}
+
+    public Member(Long id, String userId, String name, String email, String telNo, String address, String exprDate) {
+        this.id = id;
+        this.userId = userId;
+        this.name = name;
+        this.email = email;
+        this.telNo = telNo;
+        this.address = address;
+        this.exprDate = exprDate;
+    }
 
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_MEMBER_ID")
     @Id
     private Long id;
 
-    @Column
+    @Column(unique = true)
     private String userId;
 
     @Column
@@ -27,7 +41,7 @@ public class Member {
     @Column
     private String name;
 
-    @Column
+    @Column(unique = true)
     private String email;
 
     @Column
@@ -53,6 +67,11 @@ public class Member {
     }
 
     public String getUserId() {
+        return userId;
+    }
+
+    @Override
+    public String getUsername() {
         return userId;
     }
 
@@ -108,7 +127,7 @@ public class Member {
         this.exprDate = exprDate;
     }
 
-    public Collection<? extends BaseGrantedAuthority> getAuthorities() {
+    public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
     }
 
@@ -129,6 +148,21 @@ public class Member {
         }
 
         return false;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return isAccountNonExpired();
     }
 
     @Override

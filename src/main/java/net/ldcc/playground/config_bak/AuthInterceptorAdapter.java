@@ -1,4 +1,4 @@
-package net.ldcc.playground.config;
+package net.ldcc.playground.config_bak;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,18 +40,18 @@ public class AuthInterceptorAdapter extends HandlerInterceptorAdapter {
                         return true;
                     default:
                         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        return false;
                 }
-                return true;
 
             } else if (uri.matches("/api/.*")) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                return true;
+                return false;
 
             } else { // 아니면 로그인화면으로 이동
                 response.sendRedirect(request.getContextPath() + "/login");
+                return false;
             }
 
-            return false;
         }
 
         return true;

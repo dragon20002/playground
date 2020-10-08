@@ -1,9 +1,11 @@
 package net.ldcc.playground.model;
 
+import org.springframework.security.core.GrantedAuthority;
+
 import javax.persistence.*;
 
 @Entity(name = "GRANTEDAUTH")
-public class BaseGrantedAuthority {
+public class BaseGrantedAuthority implements GrantedAuthority {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GRANTEDAUTH_ID")
     @Id
     private Long id;

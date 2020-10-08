@@ -1,4 +1,4 @@
-package net.ldcc.playground.config;
+package net.ldcc.playground.config_bak;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +8,6 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
-import java.util.function.Predicate;
 
 public class CorsInterceptorAdapter extends HandlerInterceptorAdapter {
     private static final Logger logger = LoggerFactory.getLogger(CorsInterceptorAdapter.class);
