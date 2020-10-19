@@ -1,9 +1,14 @@
 package net.ldcc.playground.controller;
 
-import net.ldcc.playground.model.Member;
-import net.ldcc.playground.service.MemberService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,18 +16,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+import net.ldcc.playground.model.Member;
+import net.ldcc.playground.service.MemberService;
 
 @RestController
 public class LoginRestController {
     private static final Logger logger = LoggerFactory.getLogger(LoginRestController.class);
 
-    private final MemberService memberService;
-
-    public LoginRestController(MemberService memberService) {
-        this.memberService = memberService;
-    }
+    @Autowired
+    private MemberService memberService;
 
     @PostMapping("/api/login/check-member-dup")
     public ResponseEntity<Boolean> checkMemberDup(@RequestBody Member member) {
@@ -48,9 +50,27 @@ public class LoginRestController {
     }
 
     @GetMapping("/api/login/has-auth")
-    public ResponseEntity<Boolean> hasAuth(HttpServletRequest request) {
-        String userId = (String) request.getSession().getAttribute("userId");
-        Boolean hasAuth = userId != null && userId.length() > 0;
-        return new ResponseEntity<>(hasAuth, HttpStatus.OK);
+    public ResponseEntity<Map<String, Object>> hasAuth(HttpServletRequest request) {
+    	String jws = request.getHeader("jws");
+    	boolean hasAuth = jws != null && memberService.hasAuth(jws);
+
+    	Map<String, Object> response = new HashMap<>();
+    	response.put("jws", jws);
+    	response.put("hasAuth", hasAuth);
+
+    	return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PostMapping("/api/login")
+    public ResponseEntity<Map<String, Object>> doLogin(HttpServletRequest request, @RequestBody Member member) {
+    	String jws = memberService.doLogin(member);
+    	boolean hasAuth = jws != null;
+
+    	Map<String, Object> response = new HashMap<>();
+    	response.put("jws", jws);
+    	response.put("hasAuth", hasAuth);
+
+    	return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 }

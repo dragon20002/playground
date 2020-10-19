@@ -40,6 +40,10 @@ server:
 logging:
   level:
     root: debug
+security:
+  jwt:
+    issuer: local
+    exprTime: 60000
 
 --- #dev
 spring:
@@ -49,6 +53,10 @@ server:
 logging:
   level:
     root: info
+security:
+  jwt:
+    issuer: dev
+    exprTime: 60000
 
 --- #prod
 spring:
@@ -58,3 +66,7 @@ server:
 logging:
   level:
     root: error
+security:
+  jwt:
+    issuer: playground
+    exprTime: 1800000

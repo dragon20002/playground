@@ -1,12 +1,14 @@
 package net.ldcc.playground.service;
 
-import net.ldcc.playground.model.Member;
-import net.ldcc.playground.repo.MemberRepository;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import net.ldcc.playground.model.Member;
+import net.ldcc.playground.repo.MemberRepository;
+import net.ldcc.playground.util.JwtTokenProvider;
 
 @Service
 public class MemberService {
@@ -14,6 +16,9 @@ public class MemberService {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+    
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -45,4 +50,26 @@ public class MemberService {
     public void deleteMember(Long id) {
         memberRepository.deleteById(id);
     }
+
+    /**
+     * 인증 및 JWS 반환
+     * 
+     * @param member
+     * @return 인증 성공 시 JWS, 인증 실패 시 null 반환
+     */
+    public String doLogin(Member member) {
+        List<Member> memberList = memberRepository.findAllByUserId(member.getUserId());
+        return memberList.stream()
+                .filter(Member::isAccountNonExpired)
+                .findFirst()
+                .filter(m -> passwordEncoder.matches(member.getPassword(), m.getPassword()))
+                .map(m -> jwtTokenProvider.createToken(m.getUserId()))
+                .orElse(null);
+    }
+
+    public boolean hasAuth(String jws) {
+    	String sub = jwtTokenProvider.getSubject(jws);
+    	return sub != null;
+    }
+
 }
