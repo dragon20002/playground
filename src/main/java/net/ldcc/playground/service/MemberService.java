@@ -1,5 +1,6 @@
 package net.ldcc.playground.service;
 
+import net.ldcc.playground.annotation.DbType;
 import net.ldcc.playground.dao.MemberDao;
 import net.ldcc.playground.model.Member;
 import net.ldcc.playground.model.MemberSec;

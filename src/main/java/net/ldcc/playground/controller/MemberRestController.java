@@ -1,5 +1,6 @@
 package net.ldcc.playground.controller;
 
+import net.ldcc.playground.annotation.DbType;
 import net.ldcc.playground.model.Member;
 import net.ldcc.playground.model.MemberSec;
 import net.ldcc.playground.service.MemberService;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@DbType(profile = DbType.Profile.SECONDARY)
 @RestController
 public class MemberRestController {
     private final Logger logger = LoggerFactory.getLogger(MemberRestController.class);

@@ -311,31 +311,42 @@ Repository interface에 대한 코드 생성은 하지 않는다. Spring의 <cod
       ```
 
 5. 사용 예
-  - Controller/Service 클래스에 사용 시, 해당 클래스의 모든 메소드를 대상으로 적용된다.
-    ```java
-    @DbType(profile = DbType.Profile.SECONDARY)
-    @RestController
-    public class MemberRestController {
-        private final MemberService memberService;
-        ...
-    }
-    ```
+    - Controller/Service 클래스에 사용 시, 해당 클래스의 모든 메소드를 대상으로 적용된다.
+        ```java
+        @DbType(profile = DbType.Profile.SECONDARY)
+        @RestController
+        public class MemberRestController {
+            private final MemberService memberService;
+            ...
+        }
+        ```
 
-  - Controller/Service의 메소드에 사용 시, 해당 메소드에만 적용된다.
-    ```java
-    @DbType(profile = DbType.Profile.SECONDARY)
-    @GetMapping("/api/members")
-    public ResponseEntity<List<MemberSec>> getMembers() {
-        List<MemberSec> memberList = memberService.getMembersSec();
+    - Controller/Service의 메소드에 사용 시, 해당 메소드에만 적용된다.
+        ```java
+        @DbType(profile = DbType.Profile.SECONDARY)
+        @GetMapping("/api/members")
+        public ResponseEntity<List<MemberSec>> getMembers() {
+            List<MemberSec> memberList = memberService.getMembersSec();
 
-        return new ResponseEntity<>(memberList, HttpStatus.OK);
-    }
-    ```
+            return new ResponseEntity<>(memberList, HttpStatus.OK);
+        }
+        ```
 
 6. 제약사항
     - JdbcTemplate 활용 (JPA 활용불가)
     - 같은 DAO에 동시 접근하는 경우 상호배제로 인한 성능 저하
     - ...?
+
+7. TODO
+    - 현재 구현된 방식으로 상호배제가 보장되는지 고민해볼 것
+    - 2-Phase Commit 스터디
+    - JDBC 로드밸런싱 기능에 대해
+      - Web서버나 WAS가 아닌, DB를 대상으로 라우팅할 수 있도록 지원됨
+    - Read/Write용 DB, Read용 DB에 적용할 수 있을지 고민해볼 것
+      - MySQL, PostgreSQL 등은 Read/Write용 DB, Read용 DB로 나눠 동기화하는 기능이 있음
+    - <code>BaseDao</code>와 <code>DataSourceConvertableDao</code>로 구분해서, <code>DataSourceConvertableDao</code>를 상속받은 DAO만 DB 전환이 가능하도록 해볼 것
+      - <code>instanceof</code>
+    - DB 간 데이터 동기화해보기
 
 ## [스터디] Spring Security 인증
 ### JSON Web Token
