@@ -1,5 +1,6 @@
 package net.ldcc.playground.config;
 
+import net.ldcc.playground.config.auth_bak.AuthInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import net.ldcc.playground.util.JwtTokenProvider;
 
 @Configuration
 public class BaseWebMvcConfigurer implements WebMvcConfigurer {
+
     @Autowired
     private WebApplicationContext context;
 

@@ -5,12 +5,13 @@ import org.springframework.security.core.GrantedAuthority;
 import javax.persistence.*;
 
 @Entity(name = "GRANTEDAUTH")
+@Table(name = "GRANTEDAUTH")
 public class BaseGrantedAuthority implements GrantedAuthority {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_GRANTEDAUTH_ID")
     @Id
     private Long id;
 
-    @Column(name = "member_id")
+    @Column(name = "MEMBER_ID")
     private Long memberId;
 
     @Column

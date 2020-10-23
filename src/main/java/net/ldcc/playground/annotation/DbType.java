@@ -15,11 +15,10 @@ import java.lang.annotation.*;
 public @interface DbType {
 
     enum Profile {
-        PROD,
-        DEV,
-        LOCAL
+        PRIMARY,
+        SECONDARY
     }
 
-    Profile profile() default Profile.PROD;
+    Profile profile() default Profile.PRIMARY;
 
 }

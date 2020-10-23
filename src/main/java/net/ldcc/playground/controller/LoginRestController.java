@@ -1,11 +1,7 @@
 package net.ldcc.playground.controller;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
+import net.ldcc.playground.model.Member;
+import net.ldcc.playground.service.MemberService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import net.ldcc.playground.model.Member;
-import net.ldcc.playground.service.MemberService;
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 public class LoginRestController {
@@ -52,25 +50,27 @@ public class LoginRestController {
     @GetMapping("/api/login/has-auth")
     public ResponseEntity<Map<String, Object>> hasAuth(HttpServletRequest request) {
     	String jws = request.getHeader("jws");
+    	logger.debug("hasAuth jws = {}", jws);
     	boolean hasAuth = jws != null && memberService.hasAuth(jws);
+    	logger.debug("hasAuth = {}", hasAuth);
 
-    	Map<String, Object> response = new HashMap<>();
-    	response.put("jws", jws);
-    	response.put("hasAuth", hasAuth);
+    	Map<String, Object> model = new HashMap<>();
+    	model.put("jws", jws);
+    	model.put("hasAuth", hasAuth);
 
-    	return new ResponseEntity<>(response, HttpStatus.OK);
+    	return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
     @PostMapping("/api/login")
-    public ResponseEntity<Map<String, Object>> doLogin(HttpServletRequest request, @RequestBody Member member) {
-    	String jws = memberService.doLogin(member);
-    	boolean hasAuth = jws != null;
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Member member) {
+        String jws = memberService.doLogin(member);
+        boolean hasAuth = jws != null;
 
-    	Map<String, Object> response = new HashMap<>();
-    	response.put("jws", jws);
-    	response.put("hasAuth", hasAuth);
+        Map<String, Object> model = new HashMap<>();
+        model.put("jws", jws);
+        model.put("hasAuth", hasAuth);
 
-    	return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
 }

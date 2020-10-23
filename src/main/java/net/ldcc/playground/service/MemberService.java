@@ -1,75 +1,72 @@
 package net.ldcc.playground.service;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import net.ldcc.playground.dao.MemberDao;
+import net.ldcc.playground.model.Member;
+import net.ldcc.playground.model.MemberSec;
+import net.ldcc.playground.util.JwtTokenProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import net.ldcc.playground.model.Member;
-import net.ldcc.playground.repo.MemberRepository;
-import net.ldcc.playground.util.JwtTokenProvider;
+import java.util.List;
 
 @Service
 public class MemberService {
+    private final Logger logger = LoggerFactory.getLogger(MemberService.class);
 
-    @Autowired
-    private MemberRepository memberRepository;
+    private final MemberDao memberDao;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public MemberService(MemberDao memberDao, JwtTokenProvider jwtTokenProvider, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.memberDao = memberDao;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
     public Member getMember(Long id) {
-        return memberRepository.getOne(id);
+        return memberDao.findById(id);
     }
 
-    public Member getMemberSec(Long id) {
-        return memberRepository.getOneSec(id);
+    public MemberSec getMemberSec(Long id) {
+        return memberDao.findByIdSec(id);
     }
 
-    public List<Member> getMembers() {
-        return memberRepository.findAll();
-    }
-
-    public List<Member> getMembersSec() {
-        return memberRepository.findAllSec();
+    public List<MemberSec> getMembersSec() {
+        return memberDao.findAllSec();
     }
 
     public List<Member> getMembersByUserId(String userId) {
-        return memberRepository.findAllByUserId(userId);
+        return memberDao.findAllByUserId(userId);
     }
 
     public void postMember(Member member) {
-        member.setPassword(passwordEncoder.encode(member.getPassword()));
-        memberRepository.saveAndFlush(member);
+        member.setPassword(bCryptPasswordEncoder.encode(member.getPassword()));
+        memberDao.save(member);
     }
 
     public void deleteMember(Long id) {
-        memberRepository.deleteById(id);
-    }
-
-    /**
-     * 인증 및 JWS 반환
-     * 
-     * @param member
-     * @return 인증 성공 시 JWS, 인증 실패 시 null 반환
-     */
-    public String doLogin(Member member) {
-        List<Member> memberList = memberRepository.findAllByUserId(member.getUserId());
-        return memberList.stream()
-                .filter(Member::isAccountNonExpired)
-                .findFirst()
-                .filter(m -> passwordEncoder.matches(member.getPassword(), m.getPassword()))
-                .map(m -> jwtTokenProvider.createToken(m.getUserId()))
-                .orElse(null);
+        memberDao.deleteById(id);
     }
 
     public boolean hasAuth(String jws) {
-    	String sub = jwtTokenProvider.getSubject(jws);
-    	return sub != null;
+        String sub = jwtTokenProvider.getSubject(jws);
+        return sub != null;
+    }
+
+    public String doLogin(Member member) {
+        String userId = member.getUserId();
+        String password = member.getPassword();
+
+        List<Member> memberList = memberDao.findAllByUserId(userId);
+        return memberList.stream()
+                .filter(Member::isAccountNonExpired)
+                .findFirst()
+                .filter(m -> bCryptPasswordEncoder.matches(password, m.getPassword()))
+                .map(m -> jwtTokenProvider.createToken(userId))
+                .orElseThrow(() -> new BadCredentialsException("Invalid Password for " + userId));
     }
 
 }

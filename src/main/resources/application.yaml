@@ -13,12 +13,18 @@ spring:
     suffix: .html
     cache: false
 
-#  JavaConfig로 설정하여 주석처리함
-#  datasource:
-#    url: jdbc:h2:~/test
-#    driver-class-name: org.h2.Driver
-#    username: sa
-#    password:
+  datasource:
+    hikari:
+      primary:
+        jdbc-url: jdbc:h2:~/test
+        driver-class-name: org.h2.Driver
+        username: sa
+        password:
+      secondary:
+        jdbc-url: jdbc:h2:~/playground
+        driver-class-name: org.h2.Driver
+        username: sa
+        password:
   h2:
     console:
       enabled: true
@@ -30,6 +36,7 @@ spring:
       hibernate:
         current-session-context-class: org.springframework.orm.hibernate5.SpringSessionContext
       dialect: org.hibernate.dialect.H2Dialect
+    open-in-view: false
 
 
 --- #local
@@ -43,7 +50,7 @@ logging:
 security:
   jwt:
     issuer: local
-    exprTime: 60000
+    exprTime: 600000 #10분=600초
 
 --- #dev
 spring:
@@ -56,7 +63,7 @@ logging:
 security:
   jwt:
     issuer: dev
-    exprTime: 60000
+    exprTime: 600000 #10분=600초
 
 --- #prod
 spring:
@@ -69,4 +76,4 @@ logging:
 security:
   jwt:
     issuer: playground
-    exprTime: 1800000
+    exprTime: 1800000 #30분=1800초

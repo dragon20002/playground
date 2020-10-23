@@ -2,22 +2,18 @@ package net.ldcc.playground.model;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 @Entity
-@Table(name = "MEMBER")
-public class Member implements UserDetails {
-    private static final Logger logger = LoggerFactory.getLogger(Member.class);
+@Table(name = "TEMPMEMBER")
+public class NoMember {
+    private static final Logger logger = LoggerFactory.getLogger(NoMember.class);
 
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_MEMBER_ID")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_TEMPMEMBER_ID")
     @Id
     private Long id;
 
@@ -42,14 +38,9 @@ public class Member implements UserDetails {
     @Column(name = "EXPR_DATE")
     private String exprDate;
 
-    @OneToMany(cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER)
-    @JoinColumn(name = "MEMBER_ID")
-    private List<BaseGrantedAuthority> authorities;
+    public NoMember() {}
 
-    public Member() {}
-
-    public Member(Long id, String userId, String name, String email, String telNo, String address, String exprDate) {
+    public NoMember(Long id, String userId, String name, String email, String telNo, String address, String exprDate) {
         this.id = id;
         this.userId = userId;
         this.name = name;
@@ -68,11 +59,6 @@ public class Member implements UserDetails {
     }
 
     public String getUserId() {
-        return userId;
-    }
-
-    @Override
-    public String getUsername() {
         return userId;
     }
 
@@ -128,14 +114,6 @@ public class Member implements UserDetails {
         this.exprDate = exprDate;
     }
 
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
-    }
-
-    public void setAuthorities(List<BaseGrantedAuthority> authorities) {
-        this.authorities = authorities;
-    }
-
     public boolean isAccountNonExpired() {
         // 1. 만료일자가 빈 경우, 유효
         if (exprDate == null || exprDate.length() == 0)
@@ -149,21 +127,6 @@ public class Member implements UserDetails {
         }
 
         return false;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return isAccountNonExpired();
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return isAccountNonExpired();
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return isAccountNonExpired();
     }
 
     @Override

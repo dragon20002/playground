@@ -1,4 +1,4 @@
-package net.ldcc.playground.repo;
+package net.ldcc.playground.repo.member;
 
 import net.ldcc.playground.model.Member;
 import org.springframework.data.jpa.repository.JpaRepository;

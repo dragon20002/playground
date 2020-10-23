@@ -2,54 +2,25 @@ package net.ldcc.playground.model;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.*;
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
-@Entity
-@Table(name = "MEMBER")
-public class Member implements UserDetails {
-    private static final Logger logger = LoggerFactory.getLogger(Member.class);
+public class MemberSec {
+    private static final Logger logger = LoggerFactory.getLogger(MemberSec.class);
 
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_MEMBER_ID")
-    @Id
     private Long id;
-
-    @Column(name = "USER_ID", unique = true)
     private String userId;
-
-    @Column
-    private String password;
-
-    @Column
     private String name;
-
-    @Column(unique = true)
     private String email;
-
-    @Column(name = "TEL_NO")
     private String telNo;
-
-    @Column
     private String address;
-
-    @Column(name = "EXPR_DATE")
     private String exprDate;
 
-    @OneToMany(cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER)
-    @JoinColumn(name = "MEMBER_ID")
-    private List<BaseGrantedAuthority> authorities;
+    public MemberSec() {}
 
-    public Member() {}
-
-    public Member(Long id, String userId, String name, String email, String telNo, String address, String exprDate) {
+    public MemberSec(Long id, String userId, String name, String email, String telNo, String address, String exprDate) {
         this.id = id;
         this.userId = userId;
         this.name = name;
@@ -71,21 +42,12 @@ public class Member implements UserDetails {
         return userId;
     }
 
-    @Override
     public String getUsername() {
         return userId;
     }
 
     public void setUserId(String userId) {
         this.userId = userId;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getName() {
@@ -128,14 +90,6 @@ public class Member implements UserDetails {
         this.exprDate = exprDate;
     }
 
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
-    }
-
-    public void setAuthorities(List<BaseGrantedAuthority> authorities) {
-        this.authorities = authorities;
-    }
-
     public boolean isAccountNonExpired() {
         // 1. 만료일자가 빈 경우, 유효
         if (exprDate == null || exprDate.length() == 0)
@@ -151,27 +105,23 @@ public class Member implements UserDetails {
         return false;
     }
 
-    @Override
     public boolean isAccountNonLocked() {
         return isAccountNonExpired();
     }
 
-    @Override
     public boolean isCredentialsNonExpired() {
         return isAccountNonExpired();
     }
 
-    @Override
     public boolean isEnabled() {
         return isAccountNonExpired();
     }
 
     @Override
     public String toString() {
-        return "Member{" +
+        return "MemberSec{" +
                 "id='" + id + '\'' +
                 ", userId='" + userId + '\'' +
-                ", password='" + password + '\'' +
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", telNo='" + telNo + '\'' +

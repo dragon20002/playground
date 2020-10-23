@@ -1,0 +1,90 @@
+2020-10-22 19:07:09.261 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'primaryEntityManagerFactory'
+2020-10-22 19:07:09.261 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'primaryDataSourceConfig'
+2020-10-22 19:07:09.261 DEBUG 3236 --- [           main] ocalVariableTableParameterNameDiscoverer : Cannot find '.class' file for class [class net.ldcc.playground.config.db.PrimaryDataSourceConfig$$EnhancerBySpringCGLIB$$b816363f] - unable to determine constructor/method parameter names
+2020-10-22 19:07:09.262 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Autowiring by type from bean name 'primaryDataSourceConfig' via constructor to bean named 'org.springframework.beans.factory.support.DefaultListableBeanFactory@4ce7fffa'
+2020-10-22 19:07:09.270 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'entityManagerFactoryBuilder'
+2020-10-22 19:07:09.270 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaConfiguration'
+2020-10-22 19:07:09.272 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'spring.jpa-org.springframework.boot.autoconfigure.orm.jpa.JpaProperties'
+2020-10-22 19:07:09.278 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'spring.jpa.hibernate-org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties'
+2020-10-22 19:07:09.280 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Autowiring by type from bean name 'org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaConfiguration' via constructor to bean named 'primaryDataSource'
+2020-10-22 19:07:09.281 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Autowiring by type from bean name 'org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaConfiguration' via constructor to bean named 'spring.jpa-org.springframework.boot.autoconfigure.orm.jpa.JpaProperties'
+2020-10-22 19:07:09.281 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Autowiring by type from bean name 'org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaConfiguration' via constructor to bean named 'org.springframework.beans.factory.support.DefaultListableBeanFactory@4ce7fffa'
+2020-10-22 19:07:09.281 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Autowiring by type from bean name 'org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaConfiguration' via constructor to bean named 'spring.jpa.hibernate-org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties'
+2020-10-22 19:07:09.283 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'hikariPoolDataSourceMetadataProvider'
+2020-10-22 19:07:09.283 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'org.springframework.boot.autoconfigure.jdbc.metadata.DataSourcePoolMetadataProvidersConfiguration$HikariPoolDataSourceMetadataProviderConfiguration'
+2020-10-22 19:07:09.294 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'jpaVendorAdapter'
+2020-10-22 19:07:09.361 DEBUG 3236 --- [           main] org.jboss.logging                        : Logging Provider: org.jboss.logging.Log4j2LoggerProvider
+2020-10-22 19:07:09.366 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Autowiring by type from bean name 'entityManagerFactoryBuilder' via factory method to bean named 'jpaVendorAdapter'
+2020-10-22 19:07:09.369 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Autowiring by type from bean name 'primaryEntityManagerFactory' via factory method to bean named 'entityManagerFactoryBuilder'
+2020-10-22 19:07:09.398 DEBUG 3236 --- [           main] j.LocalContainerEntityManagerFactoryBean : Building JPA container EntityManagerFactory for persistence unit 'PRIMARY'
+2020-10-22 19:07:09.417 DEBUG 3236 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : PersistenceUnitInfo [
+	name: PRIMARY
+	persistence provider classname: null
+	classloader: jdk.internal.loader.ClassLoaders$AppClassLoader@15db9742
+	excludeUnlistedClasses: true
+	JTA datasource: null
+	Non JTA datasource: HikariDataSource (HikariPool-1)
+	Transaction type: RESOURCE_LOCAL
+	PU root URL: file:/C:/Users/mw-kim/IdeaProjects/playground/build/classes/java/main/
+	Shared Cache Mode: UNSPECIFIED
+	Validation Mode: AUTO
+	Jar files URLs []
+	Managed classes names [
+		net.ldcc.playground.model.BaseGrantedAuthority
+		net.ldcc.playground.model.Member
+		net.ldcc.playground.model.NoMember]
+	Mapping files names []
+	Properties []
+
+
+2020-10-22 19:07:10.614 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'secondaryEntityManagerFactory'
+2020-10-22 19:07:10.614 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'secondaryDataSourceConfig'
+2020-10-22 19:07:10.614 DEBUG 3236 --- [           main] ocalVariableTableParameterNameDiscoverer : Cannot find '.class' file for class [class net.ldcc.playground.config.db.SecondaryDataSourceConfig$$EnhancerBySpringCGLIB$$96286671] - unable to determine constructor/method parameter names
+2020-10-22 19:07:10.615 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Autowiring by type from bean name 'secondaryDataSourceConfig' via constructor to bean named 'org.springframework.beans.factory.support.DefaultListableBeanFactory@4ce7fffa'
+2020-10-22 19:07:10.619 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Autowiring by type from bean name 'secondaryEntityManagerFactory' via factory method to bean named 'entityManagerFactoryBuilder'
+2020-10-22 19:07:10.621 DEBUG 3236 --- [           main] o.s.b.f.s.DefaultListableBeanFactory     : Creating shared instance of singleton bean 'secondaryDataSource'
+2020-10-22 19:07:10.628 DEBUG 3236 --- [           main] com.zaxxer.hikari.HikariConfig           : Driver class org.h2.Driver found in Thread context class loader jdk.internal.loader.ClassLoaders$AppClassLoader@15db9742
+2020-10-22 19:07:10.636 DEBUG 3236 --- [           main] j.LocalContainerEntityManagerFactoryBean : Building JPA container EntityManagerFactory for persistence unit 'SECONDARY'
+2020-10-22 19:07:10.636 DEBUG 3236 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : PersistenceUnitInfo [
+	name: SECONDARY
+	persistence provider classname: null
+	classloader: jdk.internal.loader.ClassLoaders$AppClassLoader@15db9742
+	excludeUnlistedClasses: true
+	JTA datasource: null
+	Non JTA datasource: HikariDataSource (null)
+	Transaction type: RESOURCE_LOCAL
+	PU root URL: file:/C:/Users/mw-kim/IdeaProjects/playground/build/classes/java/main/
+	Shared Cache Mode: UNSPECIFIED
+	Validation Mode: AUTO
+	Jar files URLs []
+	Managed classes names [
+		net.ldcc.playground.model.BaseGrantedAuthority
+		net.ldcc.playground.model.Member
+		net.ldcc.playground.model.NoMember]
+	Mapping files names []
+	Properties []
+
+```java
+Arrays.stream(context.getBeanDefinitionNames()).forEach(name -> logger.debug("bean={}", name));
+
+if (profile != PrimaryDataSourceConfig.getProfile()) {
+	PrimaryDataSourceConfig dataSourceConfig = new PrimaryDataSourceConfig(beanFactory);
+	PrimaryDataSourceConfig.setProfile(profile);
+
+	logger.debug("primaryDataSourceConfig name={}", beanFactory.getBean("primaryDataSourceConfig").getClass().getName());
+	logger.debug("primaryEntityManagerFactory name={}", beanFactory.getBean("primaryEntityManagerFactory").getClass().getName());
+	logger.debug("primaryTransactionManager name={}", beanFactory.getBean("primaryTransactionManager").getClass().getName());
+
+	beanFactory.destroySingleton("primaryEntityManagerFactory");
+	beanFactory.destroySingleton("primaryTransactionManager");
+
+	LocalContainerEntityManagerFactoryBean emf = emfb.dataSource(dataSourceConfig.getDataSource())
+			.persistenceUnit(profile.name())
+			.packages("net.ldcc.playground.repo")
+			.build();
+
+	beanFactory.registerSingleton("primaryEntityManagerFactory", emf.getObject());
+	beanFactory.registerSingleton("primaryTransactionManager", dataSourceConfig.primaryTransactionManager(emfb));
+}
+
+```
