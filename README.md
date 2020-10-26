@@ -22,40 +22,29 @@
 2. [JPA 동작방식](#2-jpa-동작방식)
 3. [Spring Security 인증](#3-spring-security-인증)
 
-## 1. [DB 다중화](#스터디)
+## 1. DB 다중화
 
-웹 서버나 WAS는 많은 이용자의 요청을 원활하게 처리하기 위해 여러 대를 배치하여 L4스위치 또는 [*HCI](#-hci-hyper-converged-infrastructure)로 요청을 적절히 분배할 수 있다. 반면 DB를 다중화하려면 2가지 고려할 점이 있는데 이에 대해 조사하고 문제점을 해결해보았다.
+웹 서버나 WAS는 많은 이용자의 요청을 원활하게 처리하기 위해 여러 대를 배치하여 L4스위치 또는 *HCI로 요청을 적절히 분배할 수 있다. 반면 DB를 다중화하려면 2가지 고려할 점이 있는데 이에 대해 조사하고 문제점을 해결해보았다.
 
-1. [Write 작업 시 라우팅 대상 구분](#1-write-작업-시-라우팅-대상-구분)
-2. [Write 작업 완료 후 동기화 방식](#2-write-작업-완료-후-동기화-방식)
+- 1.1. [Write 작업 시 라우팅 대상 구분](#1.1.-write-작업-시-라우팅-대상-구분)
+- 1.2. [Write 작업 완료 후 동기화 방식](#1.2.-write-작업-완료-후-동기화-방식)
 
-> ##### [* HCI (Hyper Converged Infrastructure)](#1-db-다중화)
+> ##### * HCI (Hyper Converged Infrastructure)
 > ##### 수평 스케일링 장비
 
-### 1. Write 작업 시 라우팅 대상 구분
+### 1.1. Write 작업 시 라우팅 대상 구분
 
-읽기/쓰기가 가능한 DB와 [*Read-only DB](#*-read-only-database)로 나눈 환경의 경우, Read 작업 수행 시에는 L4 스위치를 거쳐 적절히 나눌 수 있지만 Write 작업 시에는 Read/Write DB로만 라우팅해야 한다.
+읽기/쓰기가 가능한 DB와 *Read-only DB로 나눈 환경의 경우, Read 작업 수행 시에는 L4 스위치를 거쳐 적절히 나눌 수 있지만 Write 작업 시에는 Read/Write DB로만 라우팅해야 한다.
 
 ![DB-Multiplex1](https://postfiles.pstatic.net/MjAyMDEwMjZfMTkg/MDAxNjAzNzAwMjg3OTE5.kbI59CkxMpdHAsSYw9kcZjPt8E4I8sWcwsCRMYRZpy0g.uQhypC_SwMWwN08eLHn4OEvvvhSO1rD556oOElIbdKog.PNG.dragon20002/write_%EC%9E%91%EC%97%85_%EB%9D%BC%EC%9A%B0%ED%8C%85.PNG?type=w773)
 
-이 문제에 대해서는 다양한 해결방식이 있겠지만 본 프로젝트에서는 아래와 같은 방식으로 해결해보았다.
-
-> [Annotation을 활용하여 DB 변경하기](#annotation을-활용하여-db-변경하기)
-
-> ##### [* Read-only DB](#1-write-작업-시-라우팅-대상-구분)
+> ##### * Read-only DB
 > ##### Read 요청이 Write 요청에 비해 상대적으로 많은 경우, Read 작업만 처리하는 DB를 구성하기 위한 모드.
 
-### 2. Write 작업 완료 후 동기화 방식
+해결방안
+- 1.1.1. [Annotation을 활용하여 DB 라우팅하기](#1.1.1.-annotation을-활용하여-db-라우팅하기)
 
-Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면, 다른 DB로 라우팅된 두 요청의 응답이 서로 다른 경우가 발생할 수 있다. 
-
-![DB-Multiplex2](https://postfiles.pstatic.net/MjAyMDEwMjZfMjM5/MDAxNjAzNjk5OTEzNjc2.EszxwVBcr4TXgyAqppgjox0m_5kXCR8uTmQpAidqa68g.PWD8--2VoyLWljWwCKNNa_l8--SnhDb2pF3FgE6aUSkg.PNG.dragon20002/write_%EC%9E%91%EC%97%85_%EB%8F%99%EA%B8%B0%ED%99%94.PNG?type=w773)
-
-> [격리 수준(Isolation Level)에 대해](#격리-수준isolation-level에-대해)
-
-> [DB 간 동기화를 지원하는 DBMS](#db-간-동기화를-지원하는-dbms)
-
-### Annotation을 활용하여 DB 변경하기
+### 1.1.1. Annotation을 활용하여 DB 라우팅하기
 [Write 작업 시 라우팅 대상 구분](#1-write-작업-시-라우팅-대상-구분)에 대한 결정권을 개발자에게 부여하여 Write 작업이 필요한 메소드에 Read/Write DB에 접근하도록 하는 Annotation을 붙이고 나머지 Read 작업만 수행하는 메소드는 L4 스위치가 라우팅하도록 한다.
 
 #### 요구사항
@@ -354,7 +343,18 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
       - <code>instanceof</code>
     - DB 간 데이터 동기화해보기
 
-### 격리 수준(Isolation Level)에 대해
+### 1.2. Write 작업 완료 후 동기화 방식
+
+Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면, 다른 DB로 라우팅된 두 요청의 응답이 서로 다른 경우가 발생할 수 있다. 
+
+![DB-Multiplex2](https://postfiles.pstatic.net/MjAyMDEwMjZfMjM5/MDAxNjAzNjk5OTEzNjc2.EszxwVBcr4TXgyAqppgjox0m_5kXCR8uTmQpAidqa68g.PWD8--2VoyLWljWwCKNNa_l8--SnhDb2pF3FgE6aUSkg.PNG.dragon20002/write_%EC%9E%91%EC%97%85_%EB%8F%99%EA%B8%B0%ED%99%94.PNG?type=w773)
+
+해결방안
+- 1.2.1. [격리 수준(Isolation Level)에 대해](#1.2.1.-격리-수준isolation-level에-대해)
+
+- 1.2.2. [DB 간 동기화를 지원하는 DBMS](#1.2.2.-db-간-동기화를-지원하는-dbms)
+
+### 1.2.1. 격리 수준(Isolation Level)에 대해
 - 격리 수준
 
   다수의 트랜잭션을 동시 처리 시 발생하는 문제들을 해결하려면 트랜잭션의 격리성을 적절히 조절해야 한다. 격리 수준이 높아질 수록 동시성이 낮아진다.
@@ -366,13 +366,13 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
   | Read<br>Uncommitted | 한 트랜잭션에서 아직 커밋하지 않은 데이터에 다른 트랜잭션이 접근할 수 있다.<br>이슈 : <font color="red">Dirty Read, Non-Repeatable Read, Phantom Read</font> |
   | Read Committed<br>(Default) | 커밋이 완료된 데이터만 읽을 수 있다.<br>이슈 : <font color="red">Non-Repeatable Read, Phantom Read</font> |
   | Repeatable<br>Read | 트랜잭션 내에서 한번 조회한 데이터는 다른 트랜잭션에서 값이 변경되어도 반복 조회 시 이전과 같은 데이터로 조회한다.<br>이슈 : <font color="red">Phantom Read</font> |
-  | Serializable | SELECT 시 [*공유 잠금](#-공유-잠금)<br>INSERT/UPDATE/DELETE 시 [**배타적 잠금](#-배타적-잠금)<br>이슈 : <font color="red">잠금으로 인한 동시성 감소</font> |
+  | Serializable | SELECT 시 *공유 잠금<br>INSERT/UPDATE/DELETE 시 **배타적 잠금<br>이슈 : <font color="red">잠금으로 인한 동시성 감소</font> |
   | Snapshot | Serializable과 동일한 격리 수준이지만, 잠금된 테이블에 대해 INSERT/DELETE 작업을 임시테이블(snapshot)에서 진행한 후, 잠금해제되면 임시테이블 변경내용을 적용한다.<br>이슈 : <font color="red">잠금으로 인한 동시성 감소</font> |
   | Read Committed<br>Snapshot (RCSI) | 잠금을 사용하지 않고, 트랜잭션 시작 전에 가장 최근에 커밋된 스냅샷을 불러와 작업을 수행한다.<br>이슈 : <font color="red">서로 다른 트랜잭션 사이에 Commit 내용의 충돌 위험</font><br><font color="sky-blue">→ 별도의 충돌감지 및 처리 필요</font> |
 
-> ##### [* 공유 잠금](#격리-수준isolation-level에-대해)
+> ##### * 공유 잠금
 > ##### 자원을 공유하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기)는 가능하지만 배타적 잠금(쓰기)은 걸 수 없다.
-> ##### [** 배타적 잠금](#격리-수준isolation-level에-대해)
+> ##### ** 배타적 잠금
 > ##### 자원을 수정하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기), 배타적 잠금(수정)을 걸 수 없다.
 
 - 격리 수준 이슈
@@ -404,14 +404,14 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
   - [트랜잭션, 트랜잭션 격리수준](https://feco.tistory.com/45)
   - [SQL Server RCSRI](https://www.brentozar.com/archive/2013/01/implementing-snapshot-or-read-committed-snapshot-isolation-in-sql-server-a-guide/)
 
-### DB 간 동기화를 지원하는 DBMS
+### 1.2.2. DB 간 동기화를 지원하는 DBMS
 - MySQL Replication
-  > [MySQL database sync between two databases](https://stackoverflow.com/questions/7707859/mysql-database-sync-between-two-databases)
-
 - PostgresQL Sync Replication
-  > [PostgreSQL Sync Replication Guide](https://hevodata.com/learn/postgresql-sync-replication/)
+- 참고링크
+  - [MySQL database sync between two databases](https://stackoverflow.com/questions/7707859/mysql-database-sync-between-two-databases)
+  - [PostgreSQL Sync Replication Guide](https://hevodata.com/learn/postgresql-sync-replication/)
 
-## 2. [JPA 동작방식](#스터디)
+## 2. JPA 동작방식
 
 ### JPA Bean 초기화 과정에 대해
 ```java
@@ -441,7 +441,7 @@ Repository interface에 대한 코드 생성은 하지 않는다. Spring의 <cod
 - 참고링크
   - [how-are-spring-data-repositories-actually-implemented](https://stackoverflow.com/questions/38509882/how-are-spring-data-repositories-actually-implemented)
 
-## 3. [Spring Security 인증](#스터디)
+## 3. Spring Security 인증
 ### JSON Web Token
 - 로그인 과정
 
