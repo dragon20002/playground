@@ -24,7 +24,7 @@
 
 ## 1. [DB 다중화](#스터디)
 
-웹 서버나 WAS는 많은 이용자의 요청을 원활하게 처리하기 위해 여러 대를 배치하여 L4스위치 또는 [*HCI](#*-hci-(hyper-converged-infrastructure))로 요청을 적절히 분배할 수 있다. 반면 DB를 다중화하려면 2가지 고려할 점이 있는데 이에 대해 조사하고 문제점을 해결해보았다.
+웹 서버나 WAS는 많은 이용자의 요청을 원활하게 처리하기 위해 여러 대를 배치하여 L4스위치 또는 [*HCI](#*-hci-hyper-converged-infrastructure)로 요청을 적절히 분배할 수 있다. 반면 DB를 다중화하려면 2가지 고려할 점이 있는데 이에 대해 조사하고 문제점을 해결해보았다.
 
 1. [Write 작업 시 라우팅 대상 구분](#1-write-작업-시-라우팅-대상-구분)
 2. [Write 작업 완료 후 동기화 방식](#2-write-작업-완료-후-동기화-방식)
@@ -51,7 +51,7 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
 
 ![DB-Multiplex2](https://postfiles.pstatic.net/MjAyMDEwMjZfMjM5/MDAxNjAzNjk5OTEzNjc2.EszxwVBcr4TXgyAqppgjox0m_5kXCR8uTmQpAidqa68g.PWD8--2VoyLWljWwCKNNa_l8--SnhDb2pF3FgE6aUSkg.PNG.dragon20002/write_%EC%9E%91%EC%97%85_%EB%8F%99%EA%B8%B0%ED%99%94.PNG?type=w773)
 
-> [격리 수준(Isolation Level)에 대해](#격리-수준(isolation-level)에-대해)
+> [격리 수준(Isolation Level)에 대해](#격리-수준isolation-level에-대해)
 
 > [DB 간 동기화를 지원하는 DBMS](#db-간-동기화를-지원하는-dbms)
 
@@ -370,10 +370,10 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
   | Snapshot | Serializable과 동일한 격리 수준이지만, 잠금된 테이블에 대해 INSERT/DELETE 작업을 임시테이블(snapshot)에서 진행한 후, 잠금해제되면 임시테이블 변경내용을 적용한다.<br><font color="red">잠금으로 인한 동시성 감소</font> |
   | Read Committed<br>Snapshot (RCSI) | 잠금을 사용하지 않고, 트랜잭션 시작 전에 가장 최근에 커밋된 스냅샷을 불러와 작업을 수행한다.<br><font color="red">서로 다른 트랜잭션 사이에 Commit 내용의 충돌 위험</font><br><font color="sky-blue">→ 별도의 충돌감지 및 처리 필요</font> |
 
-##### [* 공유 잠금](#격리-수준(isolation-level에-대해))
+##### [* 공유 잠금](#격리-수준isolation-level에-대해)
 > ##### 자원을 공유하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기)는 가능하지만 배타적 잠금(쓰기)은 걸 수 없다.
 
-##### [** 배타적 잠금](#격리-수준(isolation-level에-대해))
+##### [** 배타적 잠금](#격리-수준isolation-level에-대해)
 > ##### 자원을 수정하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기), 배타적 잠금(수정)을 걸 수 없다.
 
 - 격리 수준 이슈
