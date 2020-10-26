@@ -18,9 +18,9 @@
 
 # 스터디
 ## 목차
-1. [DB 다중화](#db-다중화)
-2. [JPA 동작방식](#jpa-동작방식)
-3. [Spring Security 인증](#spring-security-인증)
+1. [DB 다중화](#1-db-다중화)
+2. [JPA 동작방식](#2-jpa-동작방식)
+3. [Spring Security 인증](#3-spring-security-인증)
 
 ## 1. [DB 다중화](#스터디)
 
@@ -29,7 +29,7 @@
 1. [Write 작업 시 라우팅 대상 구분](#1-write-작업-시-라우팅-대상-구분)
 2. [Write 작업 완료 후 동기화 방식](#2-write-작업-완료-후-동기화-방식)
 
-##### * HCI (Hyper Converged Infrastructure)
+##### [* HCI (Hyper Converged Infrastructure)](#1-db-다중화)
 > ##### 수평 스케일링 장비
 
 ### 1. Write 작업 시 라우팅 대상 구분
@@ -42,7 +42,7 @@
 
 > [Annotation을 활용하여 DB 변경하기](#annotation을-활용하여-db-변경하기)
 
-##### * Read-only Database
+##### [* Read-only Database](#1-write-작업-시-라우팅-대상-구분)
 > ##### Read 요청이 Write 요청에 비해 상대적으로 많은 경우, Read 작업만 처리하는 DB를 구성하기 위한 모드.
 
 ### 2. Write 작업 완료 후 동기화 방식
@@ -370,10 +370,10 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
   | Snapshot | Serializable과 동일한 격리 수준이지만, 잠금된 테이블에 대해 INSERT/DELETE 작업을 임시테이블(snapshot)에서 진행한 후, 잠금해제되면 임시테이블 변경내용을 적용한다.<br><font color="red">잠금으로 인한 동시성 감소</font> |
   | Read Committed<br>Snapshot (RCSI) | 잠금을 사용하지 않고, 트랜잭션 시작 전에 가장 최근에 커밋된 스냅샷을 불러와 작업을 수행한다.<br><font color="red">서로 다른 트랜잭션 사이에 Commit 내용의 충돌 위험</font><br><font color="sky-blue">→ 별도의 충돌감지 및 처리 필요</font> |
 
-##### * 공유 잠금
+##### [* 공유 잠금](#격리-수준(isolation-level에-대해))
 > ##### 자원을 공유하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기)는 가능하지만 배타적 잠금(쓰기)은 걸 수 없다.
 
-##### ** 배타적 잠금
+##### [** 배타적 잠금](#격리-수준(isolation-level에-대해))
 > ##### 자원을 수정하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기), 배타적 잠금(수정)을 걸 수 없다.
 
 - 격리 수준 이슈
