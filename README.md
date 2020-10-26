@@ -24,17 +24,17 @@
 
 ## 1. [DB 다중화](#스터디)
 
-웹 서버나 WAS는 많은 이용자의 요청을 원활하게 처리하기 위해 여러 대를 배치하여 L4스위치 또는 [*HCI](#*-hci-hyper-converged-infrastructure)로 요청을 적절히 분배할 수 있다. 반면 DB를 다중화하려면 2가지 고려할 점이 있는데 이에 대해 조사하고 문제점을 해결해보았다.
+웹 서버나 WAS는 많은 이용자의 요청을 원활하게 처리하기 위해 여러 대를 배치하여 L4스위치 또는 [*HCI](#-hci-hyper-converged-infrastructure)로 요청을 적절히 분배할 수 있다. 반면 DB를 다중화하려면 2가지 고려할 점이 있는데 이에 대해 조사하고 문제점을 해결해보았다.
 
 1. [Write 작업 시 라우팅 대상 구분](#1-write-작업-시-라우팅-대상-구분)
 2. [Write 작업 완료 후 동기화 방식](#2-write-작업-완료-후-동기화-방식)
 
-##### [* HCI (Hyper Converged Infrastructure)](#1-db-다중화)
+> ##### [* HCI (Hyper Converged Infrastructure)](#1-db-다중화)
 > ##### 수평 스케일링 장비
 
 ### 1. Write 작업 시 라우팅 대상 구분
 
-읽기/쓰기가 가능한 DB와 [*읽기전용 DB](#*-read-only-database)로 나눈 환경의 경우, Read 작업 수행 시에는 L4 스위치를 거쳐 적절히 나눌 수 있지만 Write 작업 시에는 Read/Write DB로만 라우팅해야 한다.
+읽기/쓰기가 가능한 DB와 [*Read-only DB](#*-read-only-database)로 나눈 환경의 경우, Read 작업 수행 시에는 L4 스위치를 거쳐 적절히 나눌 수 있지만 Write 작업 시에는 Read/Write DB로만 라우팅해야 한다.
 
 ![DB-Multiplex1](https://postfiles.pstatic.net/MjAyMDEwMjZfMTkg/MDAxNjAzNzAwMjg3OTE5.kbI59CkxMpdHAsSYw9kcZjPt8E4I8sWcwsCRMYRZpy0g.uQhypC_SwMWwN08eLHn4OEvvvhSO1rD556oOElIbdKog.PNG.dragon20002/write_%EC%9E%91%EC%97%85_%EB%9D%BC%EC%9A%B0%ED%8C%85.PNG?type=w773)
 
@@ -42,7 +42,7 @@
 
 > [Annotation을 활용하여 DB 변경하기](#annotation을-활용하여-db-변경하기)
 
-##### [* Read-only Database](#1-write-작업-시-라우팅-대상-구분)
+> ##### [* Read-only DB](#1-write-작업-시-라우팅-대상-구분)
 > ##### Read 요청이 Write 요청에 비해 상대적으로 많은 경우, Read 작업만 처리하는 DB를 구성하기 위한 모드.
 
 ### 2. Write 작업 완료 후 동기화 방식
@@ -363,17 +363,16 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
 
   | 격리 수준 | 동작 방식 및 <font color="red">Issues</font>
   | --- | --- |
-  | Read<br>Uncommitted | 한 트랜잭션에서 아직 커밋하지 않은 데이터에 다른 트랜잭션이 접근할 수 있다.<br><font color="red">Dirty Read, Non-Repeatable Read, Phantom Read</font> |
-  | Read Committed<br>(Default) | 커밋이 완료된 데이터만 읽을 수 있다.<br><font color="red">Non-Repeatable Read, Phantom Read</font> |
-  | Repeatable<br>Read | 트랜잭션 내에서 한번 조회한 데이터는 다른 트랜잭션에서 값이 변경되어도 반복 조회 시 이전과 같은 데이터로 조회한다.<br><font color="red">Phantom Read</font> |
-  | Serializable | SELECT 시 [*공유 잠금](#*-공유-잠금)<br>INSERT/UPDATE/DELETE 시 [**배타적 잠금](#**-배타적-잠금)<br><font color="red">잠금으로 인한 동시성 감소</font> |
-  | Snapshot | Serializable과 동일한 격리 수준이지만, 잠금된 테이블에 대해 INSERT/DELETE 작업을 임시테이블(snapshot)에서 진행한 후, 잠금해제되면 임시테이블 변경내용을 적용한다.<br><font color="red">잠금으로 인한 동시성 감소</font> |
-  | Read Committed<br>Snapshot (RCSI) | 잠금을 사용하지 않고, 트랜잭션 시작 전에 가장 최근에 커밋된 스냅샷을 불러와 작업을 수행한다.<br><font color="red">서로 다른 트랜잭션 사이에 Commit 내용의 충돌 위험</font><br><font color="sky-blue">→ 별도의 충돌감지 및 처리 필요</font> |
+  | Read<br>Uncommitted | 한 트랜잭션에서 아직 커밋하지 않은 데이터에 다른 트랜잭션이 접근할 수 있다.<br>이슈 : <font color="red">Dirty Read, Non-Repeatable Read, Phantom Read</font> |
+  | Read Committed<br>(Default) | 커밋이 완료된 데이터만 읽을 수 있다.<br>이슈 : <font color="red">Non-Repeatable Read, Phantom Read</font> |
+  | Repeatable<br>Read | 트랜잭션 내에서 한번 조회한 데이터는 다른 트랜잭션에서 값이 변경되어도 반복 조회 시 이전과 같은 데이터로 조회한다.<br>이슈 : <font color="red">Phantom Read</font> |
+  | Serializable | SELECT 시 [*공유 잠금](#-공유-잠금)<br>INSERT/UPDATE/DELETE 시 [**배타적 잠금](#-배타적-잠금)<br>이슈 : <font color="red">잠금으로 인한 동시성 감소</font> |
+  | Snapshot | Serializable과 동일한 격리 수준이지만, 잠금된 테이블에 대해 INSERT/DELETE 작업을 임시테이블(snapshot)에서 진행한 후, 잠금해제되면 임시테이블 변경내용을 적용한다.<br>이슈 : <font color="red">잠금으로 인한 동시성 감소</font> |
+  | Read Committed<br>Snapshot (RCSI) | 잠금을 사용하지 않고, 트랜잭션 시작 전에 가장 최근에 커밋된 스냅샷을 불러와 작업을 수행한다.<br>이슈 : <font color="red">서로 다른 트랜잭션 사이에 Commit 내용의 충돌 위험</font><br><font color="sky-blue">→ 별도의 충돌감지 및 처리 필요</font> |
 
-##### [* 공유 잠금](#격리-수준isolation-level에-대해)
+> ##### [* 공유 잠금](#격리-수준isolation-level에-대해)
 > ##### 자원을 공유하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기)는 가능하지만 배타적 잠금(쓰기)은 걸 수 없다.
-
-##### [** 배타적 잠금](#격리-수준isolation-level에-대해)
+> ##### [** 배타적 잠금](#격리-수준isolation-level에-대해)
 > ##### 자원을 수정하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기), 배타적 잠금(수정)을 걸 수 없다.
 
 - 격리 수준 이슈
