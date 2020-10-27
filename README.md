@@ -379,7 +379,7 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
 - 격리 수준 이슈
 1. Dirty Read
 
-    ![Dirty Read](https://postfiles.pstatic.net/MjAyMDEwMjZfMjgy/MDAxNjAzNjk5OTEzNjc5.5Ei5g72MAij-UXMHY1ouabAgGa9DypRj2V2znJDRSO0g.JbY7OQ9CjxSD7o41waME1AdPgOvym8cbjn99rMGpRngg.PNG.dragon20002/dirty_read.png?type=w773)
+    ![Dirty Read](https://postfiles.pstatic.net/MjAyMDEwMjdfMjQ3/MDAxNjAzNzY1MjkwMDY5.m7ba0x4dUKyTOiNcMipeyKz7Yq4aSkhZcZ34Cz1WOXkg.5vixEDoLQoBbE3sye0B3DsoUsIJMNIh5cTbJKz4wtGog.PNG.dragon20002/dirty_read.png?type=w773)
 
     - **격리 수준** <br>
       Read Uncommitted 격리 수준에서 발생
@@ -405,7 +405,7 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
 
 3. Phantom Read
 
-    ![Phantom Read](https://postfiles.pstatic.net/MjAyMDEwMjdfMTY3/MDAxNjAzNzYzODA4NjU2.q6OnzNudOmosBbwVo6dcM-gndcTYnLB1E_LpuYhsMGkg.-aMY1vTB8FIs77ejOeXNKkYKkzBiwQXxUbb7bhSO7XMg.PNG.dragon20002/phantom_read.png?type=w773)
+    ![Phantom Read](https://postfiles.pstatic.net/MjAyMDEwMjdfMTA0/MDAxNjAzNzY1MjkwMDcw.VT_UKZsQCmwD9yuQEb2zpX4sBgQSVukvPucFL1_Uz38g._TYqTmrhsCGicD-Zvkmfwj4kBu0f3gCARPEXl2OIsXwg.PNG.dragon20002/phantom_read.png?type=w773)
 
     - **격리 수준** <br>
       Read Uncommitted, Read Committed, Repeatable Read 격리 수준에서 발생
