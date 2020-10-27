@@ -405,7 +405,7 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
 
 3. Phantom Read
 
-    ![Phantom Read](https://postfiles.pstatic.net/MjAyMDEwMjZfMjY5/MDAxNjAzNjk5OTEzNjc0.qr0_1b8KSDyamwRja3e932pcE_X90gu9f8q0mwzkSMMg.120OxvKDE9BdOzKU9flUw_p0lo2Is_DXLI1OlLFASMMg.PNG.dragon20002/phantom_read.png?type=w773)
+    ![Phantom Read](https://postfiles.pstatic.net/MjAyMDEwMjdfMTY3/MDAxNjAzNzYzODA4NjU2.q6OnzNudOmosBbwVo6dcM-gndcTYnLB1E_LpuYhsMGkg.-aMY1vTB8FIs77ejOeXNKkYKkzBiwQXxUbb7bhSO7XMg.PNG.dragon20002/phantom_read.png?type=w773)
 
     - **격리 수준** <br>
       Read Uncommitted, Read Committed, Repeatable Read 격리 수준에서 발생
