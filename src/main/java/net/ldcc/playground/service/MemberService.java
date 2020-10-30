@@ -1,6 +1,8 @@
 package net.ldcc.playground.service;
 
-import net.ldcc.playground.annotation.DbType;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import net.ldcc.playground.dao.MemberDao;
 import net.ldcc.playground.model.Member;
 import net.ldcc.playground.model.MemberSec;
@@ -11,11 +13,16 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class MemberService {
     private final Logger logger = LoggerFactory.getLogger(MemberService.class);
+
+    private static final String GOOGLE_CLIENT_ID = "451544914380-m657ri1nr9i2b1qeq8jb8p3o3bl1o8b0.apps.googleusercontent.com";
 
     private final MemberDao memberDao;
     private final JwtTokenProvider jwtTokenProvider;
@@ -52,9 +59,18 @@ public class MemberService {
         memberDao.deleteById(id);
     }
 
-    public boolean hasAuth(String jws) {
-        String sub = jwtTokenProvider.getSubject(jws);
-        return sub != null;
+    public boolean hasAuth(String loginType, String jws) throws GeneralSecurityException, IOException {
+        return switch (loginType) {
+            case "google" -> {
+                GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    new NetHttpTransport(), new JacksonFactory())
+                        .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
+                        .build();
+
+                yield verifier.verify(jws) != null;
+            }
+            default -> jwtTokenProvider.getSubject(jws) != null;
+        };
     }
 
     public String doLogin(Member member) {

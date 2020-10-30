@@ -59,20 +59,22 @@ Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작�
 
 1. Annotation 추가
 
-    ```java
-    @Target({ElementType.TYPE, ElementType.METHOD}) // Class나 Method 앞에 사용가능
-    @Retention(RetentionPolicy.RUNTIME) // Annotation 수명 설정
-    public @interface DbType {
-        enum Profile { PRIMARY, SECONDARY }
+    - [DbType.java](https://github.com/dragon20002/playground/blob/main/src/main/java/net/ldcc/playground/annotation/DbType.java)
 
-        Profile profile() default Profile.PRIMARY; // Annotation 속성 및 기본값 설정
+      ```java
+      @Target({ElementType.TYPE, ElementType.METHOD}) // Class나 Method 앞에 사용가능
+      @Retention(RetentionPolicy.RUNTIME) // Annotation 수명 설정
+      public @interface DbType {
+          enum Profile { PRIMARY, SECONDARY }
 
-    }
-    ```
+          Profile profile() default Profile.PRIMARY; // Annotation 속성 및 기본값 설정
+
+      }
+      ```
 
 2. Multiple Data Source 설정
 
-    - application.yaml
+    - [application.yaml](https://github.com/dragon20002/playground/blob/main/src/main/resources/application.yaml)
 
       <code>primary</code>와 <code>secondary</code>라는 이름을 가진 Data Source property를 정의한다.
 
@@ -92,7 +94,7 @@ Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작�
               password:
       ```
 
-    - DataSourceProperties.java
+    - [DataSourceProperties.java](https://github.com/dragon20002/playground/blob/main/src/main/java/net/ldcc/playground/config/db/DataSourceProperties.java)
 
       <code>primary</code>와 <code>secondary</code> property을 적용한 Data Source <code>Bean</code>을 생성한다.
 
@@ -141,11 +143,13 @@ Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작�
         ```
 
     - 참고링크
-      - [Multiple DataSource](https://gigas-blog.tistory.com/122)
+      - [Spring Boot Multiple DataSource - 평생 공부만 해야할듯(blog)](https://gigas-blog.tistory.com/122)
 
 3. DAO 추가
 
-    - <code>JdbcTemplate</code>를 가진 추상클래스 <code>BaseDao</code>
+    - [BaseDao.java](https://github.com/dragon20002/playground/blob/main/src/main/java/net/ldcc/playground/dao/BaseDao.java)
+
+      <code>JdbcTemplate</code>를 가진 추상클래스
 
       ```java
       public abstract class BaseDao {
@@ -186,7 +190,9 @@ Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작�
       }
       ```
 
-    - CRUD를 구현한 <code>MemberDao</code> 생성. <code>BaseDao</code> 클래스를 상속해야 한다.
+    - [MemberDao.java](https://github.com/dragon20002/playground/blob/main/src/main/java/net/ldcc/playground/dao/MemberDao.java)
+    
+      CRUD를 구현한 <code>MemberDao</code> 생성. <code>BaseDao</code> 클래스를 상속해야 한다.
 
       ```java
       @Component
@@ -211,15 +217,17 @@ Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작�
 
 4. (AOP) Aspect 추가
 
-    - Point Cut : DAO 패키지의 메소드 호출 시
-    - 기능 요약
-      1. <code>StackTrace</code>로 DAO 메소드를 호출한 Controller/Service의 클래스/메소드를 찾는다.
-      2. 클래스/메소드에 <code>DbType</code> Annotation이 있는지 확인하고 <code>DbType.profile</code> 값을 가져온다.
-      3. <code>profile</code> 값이 DAO에 설정된 <code>JdbcTemplate</code>의 Data source와 다른지 확인한다.
-      4. 다르면 DAO에 Lock을 걸고 <code>profile</code>에 맞는 Data source로 전환한다.
-      5. DAO 메소드 실행
-      6. *(선택사항) 이전에 연동되어 있던 Data source로 다시 전환한다.*
-      7. DAO에 대한 Lock 해제
+    - [DataSourceAspect.java](https://github.com/dragon20002/playground/blob/main/src/main/java/net/ldcc/playground/aop/DataSourceAspect.java)
+
+      - Point Cut : DAO 패키지의 메소드 호출 시
+      - 기능 요약
+        1. <code>StackTrace</code>로 DAO 메소드를 호출한 Controller/Service의 클래스/메소드를 찾는다.
+        2. 클래스/메소드에 <code>DbType</code> Annotation이 있는지 확인하고 <code>DbType.profile</code> 값을 가져온다.
+        3. <code>profile</code> 값이 DAO에 설정된 <code>JdbcTemplate</code>의 Data source와 다른지 확인한다.
+        4. 다르면 DAO에 Lock을 걸고 <code>profile</code>에 맞는 Data source로 전환한다.
+        5. DAO 메소드 실행
+        6. *(선택사항) 이전에 연동되어 있던 Data source로 다시 전환한다.*
+        7. DAO에 대한 Lock 해제
 
       ```java
       @Around("execution(* net.ldcc.playground.dao..*.*(..))") // [PointCut] DAO 패키지의 메소드 실행
@@ -344,6 +352,7 @@ Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작�
       - Web서버나 WAS가 아닌, DB를 대상으로 라우팅할 수 있도록 지원됨
     - Read/Write용 DB, Read용 DB에 적용할 수 있을지 고민해볼 것
       - MySQL, PostgreSQL 등은 Read/Write용 DB, Read용 DB로 나눠 동기화하는 기능이 있음
+      - xlog, cdc 등 동기화솔루션 조사
       - DB 다중화 및 동기화 설정 해보기
 
 ### 1.2. Write 작업 완료 후 동기화 방식
@@ -366,12 +375,12 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
 
   | 격리 수준 | 동작 방식 | <font color="red">Issues</font> |
   | --- | --- | --- |
-  | Read Uncommitted | 한 트랜잭션에서 아직 커밋하지 않은 데이터에 다른 트랜잭션이 접근할 수 있다. | <font color="red">Dirty Read,<br>Non-Repeatable Read,<br>Phantom Read</font> |
-  | Read Committed (Default) | 커밋이 완료된 데이터만 읽을 수 있다.| <font color="red">Non-Repeatable Read,<br>Phantom Read</font> |
-  | Repeatable Read | 트랜잭션 내에서 한번 조회한 데이터는 다른 트랜잭션에서 값이 변경되어도 반복 조회 시 이전과 같은 데이터로 조회한다.| <font color="red">Phantom Read</font> |
-  | Serializable | SELECT 시 *공유 잠금\*\** <br>INSERT/UPDATE/DELETE 시 *배타적 잠금\*\*\** | <font color="red">잠금으로 인한 동시성 감소</font> |
-  | Snapshot | Serializable과 동일한 격리 수준이지만, 잠금된 테이블에 대해 INSERT/DELETE 작업을 임시테이블(snapshot)에서 진행한 후, 잠금해제되면 임시테이블 변경내용을 적용한다. | <font color="red">잠금으로 인한 동시성 감소</font> |
-  | Read Committed Snapshot (RCSI) | 잠금을 사용하지 않고, 트랜잭션 시작 전에 가장 최근에 커밋된 스냅샷을 불러와 작업을 수행한다. | <font color="red">서로 다른 트랜잭션 사이에 Commit 내용의 충돌 위험</font><br><font color="sky-blue">→ 별도의 충돌감지 및 처리 필요</font> |
+  | *Read Uncommitted* | 한 트랜잭션에서 아직 커밋하지 않은 데이터에 다른 트랜잭션이 접근할 수 있다. | <font color="red">Dirty Read,<br>Non-Repeatable Read,<br>Phantom Read</font> |
+  | *Read Committed* <code>기본값</code> | 커밋이 완료된 데이터만 읽을 수 있다.| <font color="red">Non-Repeatable Read,<br>Phantom Read</font> |
+  | *Repeatable Read* | 트랜잭션 내에서 한번 조회한 데이터는 다른 트랜잭션에서 값이 변경되어도 반복 조회 시 이전과 같은 데이터로 조회한다.| <font color="red">Phantom Read</font> |
+  | *Serializable* | SELECT 시 *공유 잠금\*\** <br>INSERT/UPDATE/DELETE 시 *배타적 잠금\*\*\** | <font color="red">잠금으로 인한 동시성 감소</font> |
+  | *Snapshot* | Serializable과 동일한 격리 수준이지만, 잠금된 테이블에 대해 INSERT/DELETE 작업을 임시테이블(snapshot)에서 진행한 후, 잠금해제되면 임시테이블 변경내용을 적용한다. | <font color="red">잠금으로 인한 동시성 감소</font> |
+  | *Read Committed Snapshot (RCSI)* | 잠금을 사용하지 않고, 트랜잭션 시작 전에 가장 최근에 커밋된 스냅샷을 불러와 작업을 수행한다. | <font color="red">서로 다른 트랜잭션 사이에 Commit 내용의 충돌 위험</font><br><font color="sky-blue">→ 별도의 충돌감지 및 처리 필요</font> |
 
   > <b>\*\* 공유 잠금 : </b>자원을 공유하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기)는 가능하지만 배타적 잠금(쓰기)은 걸 수 없다.<br>
   > <b>\*\*\* 배타적 잠금 : </b>자원을 수정하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기), 배타적 잠금(수정)을 걸 수 없다.
@@ -417,15 +426,16 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
       공유 잠금, 배타적 잠금을 수행하는 Serializable 이상의 격리 수준으로 해결한다.
 
 - 참고링크
-  - [트랜잭션, 트랜잭션 격리수준](https://feco.tistory.com/45)
-  - [SQL Server RCSRI](https://www.brentozar.com/archive/2013/01/implementing-snapshot-or-read-committed-snapshot-isolation-in-sql-server-a-guide/)
+  - [트랜잭션, 트랜잭션 격리수준 - wmJun(blog)](https://feco.tistory.com/45)
+  - [SQL Server RCSRI - BrentOzar(blog)](https://www.brentozar.com/archive/2013/01/implementing-snapshot-or-read-committed-snapshot-isolation-in-sql-server-a-guide/)
 
 ### 1.2.2. DB 간 동기화를 지원하는 DBMS
 - MySQL Replication
 - PostgresQL Sync Replication
 - 참고링크
-  - [MySQL database sync between two databases](https://stackoverflow.com/questions/7707859/mysql-database-sync-between-two-databases)
-  - [PostgreSQL Sync Replication Guide](https://hevodata.com/learn/postgresql-sync-replication/)
+  - [MySQL database sync between two databases - StackOverflow](https://stackoverflow.com/questions/7707859/mysql-database-sync-between-two-databases)
+  - [PostgreSQL Sync Replication Guide - HEVO](https://hevodata.com/learn/postgresql-sync-replication/)
+  - [아는 사람만 아는 데이터 동기화 기술 - 한국데이터산업진흥원](https://www.kdata.or.kr/info/info_04_view.html?field=&keyword=&type=techreport&page=3&dbnum=189554&mode=detail&type=techreport)
 
 ## 2. JPA 동작방식
 
@@ -455,7 +465,7 @@ Repository interface에 대한 코드 생성은 하지 않는다. Spring의 <cod
     ```
 
 - 참고링크
-  - [how-are-spring-data-repositories-actually-implemented](https://stackoverflow.com/questions/38509882/how-are-spring-data-repositories-actually-implemented)
+  - [how-are-spring-data-repositories-actually-implemented - StackOverflow](https://stackoverflow.com/questions/38509882/how-are-spring-data-repositories-actually-implemented)
 
 ## 3. Spring Security 인증
 ### 3.1. JWT (JSON Web Token)

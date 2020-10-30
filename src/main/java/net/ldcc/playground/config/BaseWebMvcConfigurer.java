@@ -1,14 +1,13 @@
 package net.ldcc.playground.config;
 
 import net.ldcc.playground.config.auth_bak.AuthInterceptor;
+import net.ldcc.playground.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import net.ldcc.playground.util.JwtTokenProvider;
 
 @Configuration
 public class BaseWebMvcConfigurer implements WebMvcConfigurer {
@@ -20,8 +19,8 @@ public class BaseWebMvcConfigurer implements WebMvcConfigurer {
      * 권한에 대한 Interceptor Bean 생성
      */
     @Bean
-    public AuthInterceptor authInterceptor(JwtTokenProvider jwtTokenProvider) {
-        return new AuthInterceptor(jwtTokenProvider);
+    public AuthInterceptor authInterceptor(MemberService memberService) {
+        return new AuthInterceptor(memberService);
     }
 
     /**

@@ -1,30 +1,31 @@
 package net.ldcc.playground.config.auth_bak;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import net.ldcc.playground.service.MemberService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import net.ldcc.playground.util.JwtTokenProvider;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class AuthInterceptor extends HandlerInterceptorAdapter {
 	private final Logger logger = LoggerFactory.getLogger(AuthInterceptor.class);
 
-	private final JwtTokenProvider jwtTokenProvider;
+//	private final JwtTokenProvider jwtTokenProvider;
+	MemberService memberService;
 
-	public AuthInterceptor(JwtTokenProvider jwtTokenProvider) {
-		this.jwtTokenProvider = jwtTokenProvider;
+	public AuthInterceptor(MemberService memberService) {
+		this.memberService = memberService;
 	}
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
+		String loginType = request.getHeader("loginType");
 		String jws = request.getHeader("jws");
-		String sub = jwtTokenProvider.getSubject(jws);
+		boolean hasAuth = memberService.hasAuth(loginType, jws);
 
-		if (sub == null) {
+		if (!hasAuth) {
 			response.sendRedirect("/error/unauthorized");
 			return false;
 		}

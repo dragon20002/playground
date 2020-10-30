@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,15 +50,19 @@ public class LoginRestController {
     }
 
     @GetMapping("/api/login/has-auth")
-    public ResponseEntity<Map<String, Object>> hasAuth(HttpServletRequest request) {
-    	String jws = request.getHeader("jws");
-    	logger.debug("hasAuth jws = {}", jws);
-    	boolean hasAuth = jws != null && memberService.hasAuth(jws);
+    public ResponseEntity<Map<String, Object>> hasAuth(HttpServletRequest request) throws GeneralSecurityException, IOException {
+    	String loginType = request.getHeader("loginType");
+        String jws = request.getHeader("jws");
+    	logger.debug("hasAuth login-type = {}, jws = {}", loginType, jws);
+    	boolean hasAuth = jws != null && memberService.hasAuth(loginType, jws);
     	logger.debug("hasAuth = {}", hasAuth);
 
     	Map<String, Object> model = new HashMap<>();
-    	model.put("jws", jws);
     	model.put("hasAuth", hasAuth);
+    	if (hasAuth) {
+            model.put("login-type", loginType);
+            model.put("jws", jws);
+        }
 
     	return new ResponseEntity<>(model, HttpStatus.OK);
     }
