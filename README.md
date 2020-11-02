@@ -19,11 +19,11 @@
 # 스터디
 ## 목차
 1. [DB 다중화](#1-db-다중화)<br>
-1.1. [Write 작업 시 라우팅 대상 구분](#11-write-작업-시-라우팅-대상-구분)<br>
+1.1. [DB 라우팅에 대한 이슈](#11-db-라우팅에-대한-이슈)<br>
 1.1.1. [Annotation을 활용하여 DB 라우팅하기](#111-annotation을-활용하여-db-라우팅하기)<br>
-1.2. [Write 작업 완료 후 동기화 방식](#12-write-작업-완료-후-동기화-방식)<br>
-1.2.1. [격리 수준(Isolation Level)에 대해](#121-격리-수준isolation-level에-대해)<br>
-1.2.2. [DB 간 동기화를 지원하는 DBMS](#122-db-간-동기화를-지원하는-dbms)<br>
+1.2. [DB 동기화에 대한 이슈](#12-db-동기화에-대한-이슈)<br>
+1.2.1. [CDC 솔루션](#121-cdc-솔루션)<br>
+1.2.2. [격리 수준](#122-격리-수준)<br>
 2. [JPA 동작방식](#2-jpa-동작방식)<br>
 2.1. [JPA Bean 초기화 과정에 대해](#21-jpa-bean-초기화-과정에-대해)<br>
 2.2. [JPA Repository interface 동작방식](#22-jpa-repository-interface-동작방식)<br>
@@ -34,30 +34,50 @@
 
 ## 1. DB 다중화
 
-웹 서버나 WAS는 많은 이용자의 요청을 원활하게 처리하기 위해 여러 대를 배치하여 L4스위치 또는 *HCI\** 로 요청을 적절히 분배할 수 있다. 반면 DB를 다중화하려면 2가지 고려할 점이 있는데 이에 대해 조사하고 해결방안을 고민해보았다.
+웹 서버나 WAS는 많은 이용자의 요청을 원활하게 처리하기 위해 여러 대를 배치하여 L4스위치 또는 *HCI\** 로 부하를 분산할 수 있다.
 
-- 1.1. [Write 작업 시 라우팅 대상 구분](#11-write-작업-시-라우팅-대상-구분)
-- 1.2. [Write 작업 완료 후 동기화 방식](#12-write-작업-완료-후-동기화-방식)
+반면 DB를 다중화하려면 아래와 같이 2가지 고려할 점이 있다.
+- 1.1. [DB 라우팅에 대한 이슈](#11-db-라우팅에-대한-이슈)
+- 1.2. [DB 동기화에 대한 이슈](#12-db-동기화에-대한-이슈)
 
-> **\* HCI (Hyper Converged Infrastructure)** : 수평 스케일링 장비
+> **\* HCI (Hyper Converged Infrastructure)** : 수평 스케일링 장비<br>
 
-### 1.1. Write 작업 시 라우팅 대상 구분
+### 1.1. DB 라우팅에 대한 이슈
 
-Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작업 수행 시에는 L4 스위치를 거쳐 적절히 나눌 수 있지만 Write 작업 시에는 Read/Write DB로만 라우팅해야 한다.
+![db-routing1](readme_img/db_routing1.png)
 
-![DB-Multiplex1](https://postfiles.pstatic.net/MjAyMDEwMjZfMTkg/MDAxNjAzNzAwMjg3OTE5.kbI59CkxMpdHAsSYw9kcZjPt8E4I8sWcwsCRMYRZpy0g.uQhypC_SwMWwN08eLHn4OEvvvhSO1rD556oOElIbdKog.PNG.dragon20002/write_%EC%9E%91%EC%97%85_%EB%9D%BC%EC%9A%B0%ED%8C%85.PNG?type=w773)
+위 그림과 같이 *Read/Write DB* 1대와 *Read-only DB\** 여러 대로 나눠 DB를 다중화한 환경이 있다.
 
-> **\* Read-only Database** : DB가 Read 작업만 처리하도록 설정한다. 주로 Read 요청이 Write 요청보다 많은 환경에서 Write 요청을 수행하는 DB의 부담을 덜어주기 위해 Read 요청만 수행하는 DB를 다중화하여 사용한다.
+Read 요청은 모든 DB를 대상으로 적절히 나눠 보내면 되므로 문제가 없다. 하지만 Write 요청은 Read/Write DB로만 보내야 하는데 L4 스위치에서는 이게 Read 요청인지 Write 요청인지 구분할 방법이 없다.
+
+> **\* Read-only Database** : DB가 Read 작업만 처리하도록 설정한다. 주로 Write 요청을 수행하는 DB의 부담을 덜어주기 위해 Read 요청만 수행하는 DB를 다중화하여 사용한다.<br>
+> **\*\* Read 요청** : SELECT<br>
+> **\*\*\* Write 요청** : INSERT/UPDATE/DELETE<br>
 
 ### 1.1.1. Annotation을 활용하여 DB 라우팅하기
-[Write 작업 시 라우팅 대상 구분](#11-write-작업-시-라우팅-대상-구분)에 대한 결정권을 개발자에게 부여하여 Write 작업이 필요한 메소드에 Read/Write DB에 접근하도록 하는 Annotation을 붙이고 Read 작업만 수행하는 나머지 메소드는 L4 스위치가 라우팅하도록 한다.
 
-#### 요구사항
-여러 개의 Data source를 만들어두고, Controller/Service의 클래스나 메소드에 <code>DbType</code> Annotation을 설정해두면 <code>DbType.profile</code> 값에 따라 DAO 메소드를 호출 시 다른 Data source에 접근하도록 한다.
+![db-routing2](readme_img/db_routing2.png)
 
-#### 구현과정
+[DB 라우팅에 대한 이슈](#11-db-라우팅에-대한-이슈)를 해결하기 위해 위 그림과 같이 구상해봤다.
 
+1. L4 스위치가 하지 못했던 Read/Write 구분을 WAS Application에서 수행하도록 한다.
+2. Write 요청은 Read/Write DB로 바로 보내고, Read 요청은 L4 스위치를 거쳐 적절히 나눠 보낸다.
+
+1번에서 Read/Write 요청을 구분하는 방법은 *Annotation\** 을 활용하여 아래와 같이 구현하였다.
+
+> **\* Annotation** : 클래스/필드/메소드의 앞에 사용하여 대상의 메타 데이터를 표현할 수 있는 Java에서 제공하는 요소. 예를 들어, 메소드 앞에 <code>@Override</code> 어노테이션이 붙어있으면 해당 메소드는 부모클래스로부터 상속받았음을 의미한다.
+
+#### 구현 과정 요약
+1. DAO 메소드가 접근할 DB를 구분하는 Annotation을 만든다.
+2. Write 작업이 필요한 메소드 앞에 해당 Annotation을 붙인다.
+3. *AOP\** 를 통해 DAO 메소드 호출 전에 2번에서 붙인 Annotation이 있는지 체크한 후 DAO 메소드가 Read/Write DB에 해당하는 Data Source에 접근하도록 처리한다.
+
+> **\* AOP(Aspect Oriented Programming)** : 어떤 메소드의 기능 수행 전/후에 공통적으로 수행하는 기능을 모듈화하는 것.
+
+#### 구현 과정 상세
 1. Annotation 추가
+
+    DAO 메소드가 접근할 DB를 구분하는 Annotation을 추가한다.
 
     - [DbType.java](https://github.com/dragon20002/playground/blob/main/src/main/java/net/ldcc/playground/annotation/DbType.java)
 
@@ -142,14 +162,14 @@ Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작�
         }
         ```
 
-    - 참고링크
-      - [Spring Boot Multiple DataSource - 평생 공부만 해야할듯(blog)](https://gigas-blog.tistory.com/122)
+    > 참고링크<br>
+    > [Spring Boot Multiple DataSource - 평생 공부만 해야할듯(blog)](https://gigas-blog.tistory.com/122)<br>
 
 3. DAO 추가
 
     - [BaseDao.java](https://github.com/dragon20002/playground/blob/main/src/main/java/net/ldcc/playground/dao/BaseDao.java)
 
-      <code>JdbcTemplate</code>를 가진 추상클래스
+      <code>JdbcTemplate</code>을 가진 추상클래스
 
       ```java
       public abstract class BaseDao {
@@ -220,7 +240,7 @@ Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작�
     - [DataSourceAspect.java](https://github.com/dragon20002/playground/blob/main/src/main/java/net/ldcc/playground/aop/DataSourceAspect.java)
 
       - Point Cut : DAO 패키지의 메소드 호출 시
-      - 기능 요약
+      - Aspect 기능 요약
         1. <code>StackTrace</code>로 DAO 메소드를 호출한 Controller/Service의 클래스/메소드를 찾는다.
         2. 클래스/메소드에 <code>DbType</code> Annotation이 있는지 확인하고 <code>DbType.profile</code> 값을 가져온다.
         3. <code>profile</code> 값이 DAO에 설정된 <code>JdbcTemplate</code>의 Data source와 다른지 확인한다.
@@ -343,7 +363,7 @@ Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작�
 
 6. 제약사항
     - JdbcTemplate 활용 (JPA 활용불가)
-    - 같은 DAO에 동시 접근하는 경우 상호배제로 인한 성능 저하
+    - 여러 요청이 같은 DAO에 동시 접근하는 경우 상호배제로 인한 성능 저하
     - 그리고 또...?
 
 7. TODO
@@ -355,17 +375,42 @@ Read/Write 가능 DB와 *Read-only DB\** 로 나눈 환경의 경우, Read 작�
       - xlog, cdc 등 동기화솔루션 조사
       - DB 다중화 및 동기화 설정 해보기
 
-### 1.2. Write 작업 완료 후 동기화 방식
+### 1.2. DB 동기화에 대한 이슈
 
-Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면, 다른 DB로 라우팅된 두 요청의 응답이 서로 다른 경우가 발생할 수 있다. 
+![db-sync](readme_img/db_sync.png)
 
-![DB-Multiplex2](https://postfiles.pstatic.net/MjAyMDEwMjZfMjM5/MDAxNjAzNjk5OTEzNjc2.EszxwVBcr4TXgyAqppgjox0m_5kXCR8uTmQpAidqa68g.PWD8--2VoyLWljWwCKNNa_l8--SnhDb2pF3FgE6aUSkg.PNG.dragon20002/write_%EC%9E%91%EC%97%85_%EB%8F%99%EA%B8%B0%ED%99%94.PNG?type=w773)
+Read/Write DB에 Write 작업 후 동기화가 제 때 이뤄지지 않으면 같은 요청이라도 서로 다른 응답 결과를 받게 된다.
 
-- 1.2.1. [격리 수준(Isolation Level)에 대해](#121-격리-수준isolation-level에-대해)
+동기화 기능은 *CDC* 솔루션을 통해 구현할 수 있다. CDC 동기화 기술과 트랜잭션 격리 수준에 대해 정리하였다.
 
-- 1.2.2. [DB 간 동기화를 지원하는 DBMS](#122-db-간-동기화를-지원하는-dbms)
+- 1.2.1. [CDC 솔루션](#121-cdc-솔루션)
+- 1.2.2. [격리 수준](#122-격리-수준)
 
-### 1.2.1. 격리 수준(Isolation Level)에 대해
+### 1.2.1. CDC 솔루션
+
+CDC(Change Data Capture)는 데이터베이스의 트랜잭션 Log 파일로부터 변경 데이터를 추출하여 다른 데이터베이스와 데이터를 실시간으로 동기화하는 기술이다.
+
+- 동기화 방식
+  | 방식 | 설명 |
+  | --- | --- |
+  | Trigger | 대상 테이블에 Trigger를 적용하여 DML 발생 시 로그 테이블에 기록하여 변경   데이터 추출 |
+  | Timestamp | 테이블의 Timestamp 컬럼 기준으로 변경 데이터 추출 |
+  | Direct Log Access | DB Redo Log 파일에 접근 및 분석하여 변경 데이터 추출 |
+
+- 솔루션 종류
+  - MySQL Replication
+  - PostgresQL Sync Replication
+  - X-LOG
+  - Oracle Golden Gate
+  - Debezium
+
+> 참고링크<br>
+> [CDC 솔루션 - ArkData](https://www.dqc.or.kr/wp-content/uploads/2019/11/T3.%EC%86%94%EB%A3%A8%EC%85%984_%EB%8D%B0%EC%9D%B4%ED%83%80%EB%B1%85%ED%81%AC%EC%8B%9C%EC%8A%A4%ED%85%9C%EC%A6%88_%EA%B6%8C%EA%B8%B0%EC%9A%B1_%EC%A0%84%EB%AC%B4.pdf)<br>
+> [아는 사람만 아는 데이터 동기화 기술 - 한국데이터산업진흥원](https://www.kdata.or.kr/info/info_04_view.html?field=&keyword=&type=techreport&page=3&dbnum=189554&mode=detail&type=techreport)<br>
+> [MySQL Replication을 이용하여 DBMS 단방향 이중화하기 - 서버구축이야기 tistory blog](https://stackoverflow.com/questions/7707859/mysql-database-sync-between-two-databases)<br>
+> [PostgreSQL Sync Replication Guide - HEVO 포럼](https://hevodata.com/learn/postgresql-sync-replication/)<br>
+
+### 1.2.2. 격리 수준
 - 격리 수준
 
   다수의 트랜잭션을 동시 처리 시 발생하는 문제들은 트랜잭션의 격리성을 조절하여 해결할 수 있다. 격리 수준이 높아질 수록 동시성이 낮아지므로 성능을 고려하여 조절해야 한다.
@@ -388,7 +433,7 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
 - 격리 수준 이슈
 1. Dirty Read
 
-    ![Dirty Read](https://postfiles.pstatic.net/MjAyMDEwMjdfMjQ3/MDAxNjAzNzY1MjkwMDY5.m7ba0x4dUKyTOiNcMipeyKz7Yq4aSkhZcZ34Cz1WOXkg.5vixEDoLQoBbE3sye0B3DsoUsIJMNIh5cTbJKz4wtGog.PNG.dragon20002/dirty_read.png?type=w773)
+    ![Dirty Read](readme_img/dirty_read.png)
 
     - **격리 수준** <br>
       Read Uncommitted 격리 수준에서 발생
@@ -401,7 +446,7 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
 
 2. Non-Repeatable Read
 
-    ![Non-Repeatable Read](https://postfiles.pstatic.net/MjAyMDEwMjZfMTM4/MDAxNjAzNjk5OTEzNjc2.PZKKaQ7v2em4qBWnWwao3c7QAXHEfcWPd26kNdC9134g.fT5m5izH4DmfsL3LM9pDmLhQjrbq6SlwITXlapTusYcg.PNG.dragon20002/non-repeatable_read.png?type=w773)
+    ![Non-Repeatable Read](readme_img/non-repeatable_read.png)
 
     - **격리 수준** <br>
       Read Uncommitted, Read Committed 격리 수준에서 발생
@@ -414,7 +459,7 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
 
 3. Phantom Read
 
-    ![Phantom Read](https://postfiles.pstatic.net/MjAyMDEwMjdfMTA0/MDAxNjAzNzY1MjkwMDcw.VT_UKZsQCmwD9yuQEb2zpX4sBgQSVukvPucFL1_Uz38g._TYqTmrhsCGicD-Zvkmfwj4kBu0f3gCARPEXl2OIsXwg.PNG.dragon20002/phantom_read.png?type=w773)
+    ![Phantom Read](readme_img/phantom_read.png)
 
     - **격리 수준** <br>
       Read Uncommitted, Read Committed, Repeatable Read 격리 수준에서 발생
@@ -425,17 +470,9 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이루어지지 않으면
     - **해결 방법** <br>
       공유 잠금, 배타적 잠금을 수행하는 Serializable 이상의 격리 수준으로 해결한다.
 
-- 참고링크
-  - [트랜잭션, 트랜잭션 격리수준 - wmJun(blog)](https://feco.tistory.com/45)
-  - [SQL Server RCSRI - BrentOzar(blog)](https://www.brentozar.com/archive/2013/01/implementing-snapshot-or-read-committed-snapshot-isolation-in-sql-server-a-guide/)
-
-### 1.2.2. DB 간 동기화를 지원하는 DBMS
-- MySQL Replication
-- PostgresQL Sync Replication
-- 참고링크
-  - [MySQL database sync between two databases - StackOverflow](https://stackoverflow.com/questions/7707859/mysql-database-sync-between-two-databases)
-  - [PostgreSQL Sync Replication Guide - HEVO](https://hevodata.com/learn/postgresql-sync-replication/)
-  - [아는 사람만 아는 데이터 동기화 기술 - 한국데이터산업진흥원](https://www.kdata.or.kr/info/info_04_view.html?field=&keyword=&type=techreport&page=3&dbnum=189554&mode=detail&type=techreport)
+> 참고링크<br>
+> [트랜잭션, 트랜잭션 격리수준 - wmJun(blog)](https://feco.tistory.com/45)<br>
+> [SQL Server RCSRI - BrentOzar(blog)](https://www.brentozar.com/archive/2013/01/implementing-snapshot-or-read-committed-snapshot-isolation-in-sql-server-a-guide/)<br>
 
 ## 2. JPA 동작방식
 
@@ -464,8 +501,8 @@ Repository interface에 대한 코드 생성은 하지 않는다. Spring의 <cod
     public List<Member> findAllByUserId(String userId);
     ```
 
-- 참고링크
-  - [how-are-spring-data-repositories-actually-implemented - StackOverflow](https://stackoverflow.com/questions/38509882/how-are-spring-data-repositories-actually-implemented)
+> 참고링크<br>
+> [how-are-spring-data-repositories-actually-implemented - StackOverflow](https://stackoverflow.com/questions/38509882/how-are-spring-data-repositories-actually-implemented)<br>
 
 ## 3. Spring Security 인증
 ### 3.1. JWT (JSON Web Token)
