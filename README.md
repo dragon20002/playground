@@ -44,7 +44,7 @@
 
 ### 1.1. DB 라우팅에 대한 이슈
 
-![db-routing1](readme_img/db_routing1.png)
+![db-routing1](readme_img/db_routing-1.png)
 
 위 그림과 같이 *Read/Write DB* 1대와 *Read-only DB\** 여러 대로 나눠 DB를 다중화한 환경이 있다.
 
@@ -56,7 +56,7 @@ Read 요청은 모든 DB를 대상으로 적절히 나눠 보내면 되므로 �
 
 ### 1.1.1. Annotation을 활용하여 DB 라우팅하기
 
-![db-routing2](readme_img/db_routing2.png)
+![db-routing2](readme_img/db_routing-2.png)
 
 [DB 라우팅에 대한 이슈](#11-db-라우팅에-대한-이슈)를 해결하기 위해 위 그림과 같이 구상해봤다.
 
@@ -377,7 +377,7 @@ Read 요청은 모든 DB를 대상으로 적절히 나눠 보내면 되므로 �
 
 ### 1.2. DB 동기화에 대한 이슈
 
-![db-sync](readme_img/db_sync.png)
+![db-sync](readme_img/db_sync-1.png)
 
 Read/Write DB에 Write 작업 후 동기화가 제 때 이뤄지지 않으면 같은 요청이라도 서로 다른 응답 결과를 받게 된다.
 
