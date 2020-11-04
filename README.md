@@ -17,62 +17,84 @@
 | DELETE | /api/members/{id} | 회원삭제 |
 
 # 스터디
+
 ## 목차
-1. [DB 다중화](#1-db-다중화)<br>
-1.1. [DB 라우팅에 대한 이슈](#11-db-라우팅에-대한-이슈)<br>
-1.1.1. [Annotation을 활용하여 DB 라우팅하기](#111-annotation을-활용하여-db-라우팅하기)<br>
-1.2. [DB 동기화에 대한 이슈](#12-db-동기화에-대한-이슈)<br>
-1.2.1. [CDC](#121-cdc)<br>
-1.2.2. [트랜잭션 격리 수준](#122-트랜잭션-격리-수준)<br>
-2. [JPA 동작방식](#2-jpa-동작방식)<br>
-2.1. [JPA Bean 초기화 과정에 대해](#21-jpa-bean-초기화-과정에-대해)<br>
-2.2. [JPA Repository interface 동작방식](#22-jpa-repository-interface-동작방식)<br>
-3. [Spring Security 인증](#3-spring-security-인증)<br>
-3.1. [JWT (JSON Web Token)](#31-jwt-json-web-token)<br>
-3.1.1. [로그인 과정](#311-로그인-과정)<br>
-3.1.2. [인증 과정](#312-인증-과정)<br>
+
+[1.](#1-db-다중화) DB 다중화<br>
+&nbsp;&nbsp;[1.1.](#11-db-라우팅에-대한-이슈) DB 라우팅에 대한 이슈<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[1.1.1.](#111-annotation을-활용하여-db-라우팅하기) Annotation을 활용하여 DB 라우팅하기<br>
+&nbsp;&nbsp;[1.2.](#12-db-동기화에-대한-이슈) DB 동기화에 대한 이슈<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[1.2.1.](#121-cdc) CDC<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[1.2.2.](#122-트랜잭션-격리-수준) 트랜잭션 격리 수준<br>
+
+[2.](#2-jpa-동작방식) JPA 동작방식<br>
+&nbsp;&nbsp;[2.1.](#21-jpa-bean-초기화-과정에-대해) JPA Bean 초기화 과정에 대해<br>
+&nbsp;&nbsp;[2.2.](#22-jpa-repository-interface-동작방식) JPA Repository interface 동작방식<br>
+
+[3.](#3-spring-security-인증) Spring Security 인증<br>
+&nbsp;&nbsp;[3.1.](#31-jwt-json-web-token) JWT (JSON Web Token)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[3.1.1.](#311-로그인-과정) 로그인 과정<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[3.1.2.](#312-인증-과정) 인증 과정<br>
+
+---
 
 ## 1. DB 다중화
 
-웹 서버나 WAS는 많은 이용자의 요청을 원활하게 처리하기 위해 여러 대를 배치하여 *L4스위치\** 또는 *HCI\*\** 로 부하를 분산할 수 있다.
+웹 서버나 WAS는 많은 이용자의 요청을 원활하게 처리하기 위해 여러 대를 배치하여 *L4스위치¹* 또는 *HCI²* 로 부하를 분산시킬 수 있다.
 
-반면, DB를 다중화하려면 아래와 같이 2가지 고려할 점이 있다.
-- 1.1. [**DB 라우팅**에 대한 이슈](#11-db-라우팅에-대한-이슈)
-- 1.2. [**DB 동기화**에 대한 이슈](#12-db-동기화에-대한-이슈)
+- 다중화 구조
 
-> **\* L4스위치** : 요청의 IP주소와 포트 정보를 참조하여 서버에 전달한다. 목적지 IP/PORT를 수정하여 로드 밸런싱(부하 분산)을 할 수 있다.<br>
-> **\*\* HCI (Hyper Converged Infrastructure)** : 스토리지, 컴퓨팅, 네트워킹 등의 리소스를 가상화하여 수평적 스케일링을 지원하는 장비.<br>
+  ![multiplex_arch](readme_img/multiplex_arch.png)
+
+  다중화 구조에는 *HA³*, *RAC⁴* 같은 구조가 있는데 DB와 서버 중간에 L4 스위치를 두지 않는 한, 하나의 DB만 서비스할 수 있다. 이러한 구조들은 서버의 부하를 분산시킬 수는 있지만 서버로부터 오는 요청을 하나의 DB가 전담하기 때문에 DB 성능에는 비효율적이다.
+
+- DB 다중화 구조 (구상안)
+
+  ![db_multiplex_arch](readme_img/db_multiplex_arch.png)
+
+  먼저, DB 다중화에 대해 알아보기 위해 위와 같은 구조를 구상해보았다. *Read/Write DB* 1대와 *Read-only DB⁵* 여러 대로 나눠 DB를 다중화하였다.
+
+  여기에 2가지 고려할 점이 있다. 하나는 처리할 요청이 Read 요청인지 Write 요청인지 구분하여 Read/Write DB 또는 Read-only DB로 적절히 **라우팅**할 수 있어야 한다는 것이고, 다른 하나는 Write 작업이 끝난 후 Read-only DB로 **동기화**가 이뤄져야 하는 것이다. 이 2가지 이슈들을 중심으로 DB 다중화에 대해 정리해보기로 했다.
+
+  - [1.1.]((#11-db-라우팅에-대한-이슈)) **DB 라우팅**에 대한 이슈
+  - [1.2.]((#12-db-동기화에-대한-이슈)) **DB 동기화**에 대한 이슈
+
+> ***용어주석***<br>
+> 1\. **L4스위치** : 요청의 IP주소와 포트 정보를 참조하여 서버에 전달한다. 목적지 IP/PORT를 수정하여 로드 밸런싱(부하 분산)을 할 수 있다.<br>
+> 2\. **HCI (Hyper Converged Infrastructure)** : 스토리지, 컴퓨팅, 네트워킹 등의 리소스를 가상화하여 수평적 스케일링을 지원하는 장비.<br>
+> 3\. **HA (High Availability)** : 다중화 방식 중 하나로, 실서비스용 Active 서버와 백업용 Standby 서버로 구성하여 Active 서버로 서비스하다가 장애 발생 시 Standby 서버와 스왑하는 방식으로 가용성을 높인다.<br>
+> 4\. **RAC (Real Application Cluster)** : 다중화 방식 중 하나로, HA와 달리 Active-Active 구조로 분산하여 운영한다.<br>
+> 5\. **Read-only Database** : DB가 Read 작업만 처리하도록 설정한다. 주로 Write 요청을 수행하는 DB의 부담을 덜어주기 위해 Read 요청만 수행하는 DB를 다중화하여 사용한다.<br>
 
 ### 1.1. DB 라우팅에 대한 이슈
 
 ![db-routing1](readme_img/db_routing-1.png)
 
-위 그림과 같이 *Read/Write DB* 1대와 *Read-only DB\** 여러 대로 나눠 DB를 다중화한 환경이 있다.
+*Read 요청¹*은 모든 DB를 대상으로 적절히 나눠 보내면 되므로 문제가 없다. 하지만 *Write 요청²*은 Read/Write DB로만 보내야 하는데 L4 스위치에서는 이게 Read 요청인지 Write 요청인지 구분할 방법이 없다.
 
-Read 요청은 모든 DB를 대상으로 적절히 나눠 보내면 되므로 문제가 없다. 하지만 Write 요청은 Read/Write DB로만 보내야 하는데 L4 스위치에서는 이게 Read 요청인지 Write 요청인지 구분할 방법이 없다.
-
-> **\* Read-only Database** : DB가 Read 작업만 처리하도록 설정한다. 주로 Write 요청을 수행하는 DB의 부담을 덜어주기 위해 Read 요청만 수행하는 DB를 다중화하여 사용한다.<br>
-> **\*\* Read 요청** : SELECT<br>
-> **\*\*\* Write 요청** : INSERT/UPDATE/DELETE<br>
+> ***용어주석***<br>
+> 1\. **Read 요청** : SELECT 쿼리를 실행하는 요청<br>
+> 2\. **Write 요청** : INSERT/UPDATE/DELETE 쿼리를 실행하는 요청<br>
 
 ### 1.1.1. Annotation을 활용하여 DB 라우팅하기
 
 ![db-routing2](readme_img/db_routing-2.png)
 
-[DB 라우팅에 대한 이슈](#11-db-라우팅에-대한-이슈)를 해결하기 위해 위 그림과 같이 구상해봤다.
+[DB 라우팅에 대한 이슈](#11-db-라우팅에-대한-이슈)를 해결하기 위해 이전의 구상안을 위 그림과 같이 수정해봤다.
 
 1. L4 스위치가 하지 못했던 Read/Write 구분을 WAS Application에서 수행하도록 한다.
 2. Write 요청은 Read/Write DB로 바로 보내고, Read 요청은 L4 스위치를 거쳐 적절히 나눠 보낸다.
 
-1번에서 Read/Write 요청을 구분하는 방법은 *Annotation\** 을 활용하여 아래와 같이 구현하였다.
+1번에 Application 내부에서 Read/Write 요청을 구분하는 부분은 *Annotation¹* 을 활용하여 아래와 같이 구현하였다.
 
 - **구현 과정 요약**
     1. DAO 메소드가 접근할 DB를 구분하는 Annotation을 만든다.
     2. Write 작업이 필요한 메소드 앞에 해당 Annotation을 붙인다.
-    3. *AOP\*\** 를 통해 DAO 메소드 호출 전에 2번에서 붙인 Annotation이 있는지 체크한 후 DAO 메소드가 Read/Write DB에 해당하는 Data Source에 접근하도록 처리한다.
+    3. *AOP²* 를 통해 DAO 메소드 호출 전에 2번에서 붙인 Annotation이 있는지 체크한 후 DAO 메소드가 Read/Write DB에 해당하는 Data Source에 접근하도록 처리한다.
 
-> **\* Annotation** : 클래스/필드/메소드의 앞에 사용하여 대상의 메타 데이터를 표현할 수 있는 Java에서 제공하는 요소. 예를 들어, 메소드 앞에 <code>@Override</code> 어노테이션이 붙어있으면 해당 메소드는 부모클래스로부터 상속받았음을 의미한다.<br>
-> **\*\* AOP(Aspect Oriented Programming)** : 어떤 메소드의 기능 수행 전/후에 공통적으로 수행하는 기능을 모듈화하는 것.
+> ***용어주석***<br>
+> 1\. **Annotation** : 클래스/필드/메소드의 앞에 사용하여 대상의 다양한 메타 정보를 표현할 수 있는 Java에서 제공하는 요소. 예를 들어, 메소드 앞에 <code>@Override</code> 어노테이션이 붙어있으면 해당 메소드는 부모클래스로부터 상속받았음을 의미한다.<br>
+> 2\. **AOP(Aspect Oriented Programming)** : 어떤 메소드의 기능 수행 전/후에 공통적으로 수행하는 기능을 모듈화하는 것.
 
 - **구현 과정 상세**
   1. Annotation 추가
@@ -375,7 +397,7 @@ Read/Write DB에 Write 작업 후 동기화가 제 때 이뤄지지 않으면 �
 
 ### 1.2.1. CDC
 
-CDC(Change Data Capture)는 데이터베이스의 변경 데이터를 추출하여 다른 데이터베이스와 데이터를 실시간으로 동기화하는 기술이다.
+CDC(Change Data Capture)는 데이터베이스의 변경 데이터를 추출하여 다른 데이터베이스와 실시간으로 데이터를 동기화하는 기술이다. 데이터베이스의 변경 데이터를 추출하는 방식은 크게 3가지로 나눌 수 있다.
 
 - 변경 데이터 추출 방식
 
@@ -383,7 +405,7 @@ CDC(Change Data Capture)는 데이터베이스의 변경 데이터를 추출하�
 
     수정시간, 버전명, 상태 컬럼 등 변경여부를 알 수 있는 테이블 컬럼을 스캔하여 변경 데이터를 추출한다. DELETE 동기화는 힘들다는 단점이 있다.
 
-  - **Redo Log\*** 스캔 방식
+  - **Redo Log¹** 스캔 방식
 
     트랜잭션 Redo Log 로부터 변경 데이터를 추출한다. 대부분의 CDC 솔루션이 사용하는 방식
 
@@ -391,7 +413,7 @@ CDC(Change Data Capture)는 데이터베이스의 변경 데이터를 추출하�
 
     DML 발생 시 *Log 테이블* 에 기록하는 Trigger를 각 테이블에 적용하여 변경 데이터를 추출한다.
 
-CDC는 위와 같은 방식을 통해 변경 데이터를 추출한 다음, 내장된 Streaming 기능이나 Reddis, Apache Kafka 등의 별도 메시징 솔루션을 사용하여 다른 데이터베이스에 변경 데이터를 보내 동기화한다.
+변경 데이터를 추출한 다음에는 내장된 Streaming 기능이나 Reddis, Apache Kafka 등의 별도 메시징 솔루션을 사용하여 다른 데이터베이스에 변경 데이터를 보내 동기화한다.
 
 - 솔루션 종류
   - **X-LOG** [소개](http://r2bsolution.co.kr/sub/sub01_01.php)
@@ -414,7 +436,8 @@ CDC는 위와 같은 방식을 통해 변경 데이터를 추출한 다음, 내�
   
     MySQL에서 제공하는 CDC 기술. MySQL만 지원함.
 
-> **\* Redo Log** : Oracle DB에서 발생하는 모든 변경사항을 기록하는 파일. MySQL/MariaDB에는 비슷한 기능으로 *binlog* 가 있음.
+> ***용어주석***<br>
+> 1\. **Redo Log** : Oracle DB에서 발생하는 모든 변경사항을 기록하는 파일. MySQL/MariaDB에는 비슷한 기능으로 *binlog* 가 있음.
 
 > ***참고자료***<br>
 > [CDC 솔루션 - ArkData](https://www.dqc.or.kr/wp-content/uploads/2019/11/T3.%EC%86%94%EB%A3%A8%EC%85%984_%EB%8D%B0%EC%9D%B4%ED%83%80%EB%B1%85%ED%81%AC%EC%8B%9C%EC%8A%A4%ED%85%9C%EC%A6%88_%EA%B6%8C%EA%B8%B0%EC%9A%B1_%EC%A0%84%EB%AC%B4.pdf)<br>
@@ -423,9 +446,9 @@ CDC는 위와 같은 방식을 통해 변경 데이터를 추출한 다음, 내�
 > [오라클 Redo Log File](https://ttend.tistory.com/716)<br>
 
 ### 1.2.2. 트랜잭션 격리 수준
-트랜잭션 격리 수준은 다수의 트랜잭션을 동시 처리 시 발생하는 문제들을 해결하기 위해 격리성과 동시성을 적절히 조절하기 위한 것이다. 격리 수준이 높아질 수록 동시성이 낮아지므로 성능 및 용도를 고려하여 조절해야 한다.
+트랜잭션 격리 수준(Isolation Level)은 다수의 트랜잭션을 동시 처리 시 발생하는 문제들을 해결하기 위해 격리성과 동시성을 적절히 조절하기 위한 것이다. 격리성이 높아질 수록 동시성이 낮아지므로 성능 및 용도를 고려하여 조절해야 한다.
 
-이에 대한 내용을 *트랜잭션 격리 수준* 과 *트랜잭션 동시 처리 시 발생하는 이슈*로 나눠서 정리해보았다.
+이에 대해 조사한 내용을 *트랜잭션 격리 수준* 과 *트랜잭션 동시 처리 시 발생하는 이슈* 로 나눠서 정리해보았다.
 
 - 격리 수준
   격리성 비교 : <code>Read Uncommitted</code> < <code>Read Committed</code> < <code>Non-Repeatable Read</code> < <code>Serializable</code>
@@ -436,12 +459,13 @@ CDC는 위와 같은 방식을 통해 변경 데이터를 추출한 다음, 내�
   | *Read Uncommitted* | 다른 트랜잭션에서 수정 중인 데이터에 접근 시 커밋되지 않은 데이터에 접근할 수 있다. | <font color="red">Dirty Read,<br>Non-Repeatable Read,<br>Phantom Read</font> |
   | *Read Committed* <code>기본값</code> | 다른 트랜잭션에서 수정 중인 데이터에 접근 시 최근에 커밋된 내용에만 접근할 수 있다. | <font color="red">Non-Repeatable Read,<br>Phantom Read</font> |
   | *Repeatable Read* | 한 트랜잭션 내에서 한번 조회한 데이터는 다른 트랜잭션에서 수정되어도 재조회 시, 처음에 조회하면서 생성된 snapshot에서 조회하여 처음과 같은 값을 조회한다. | <font color="red">Phantom Read</font> |
-  | *Serializable* | SELECT 시 *공유 잠금\** , <br>INSERT/UPDATE/DELETE 시 *배타적 잠금\*\** | |
+  | *Serializable* | SELECT 시 *공유 잠금¹* , <br>INSERT/UPDATE/DELETE 시 *배타적 잠금²* | |
   | *Snapshot* | Serializable과 동일한 격리 수준이지만, 잠금된 테이블에 대한 INSERT/DELETE를 임시테이블 (snapshot)에서 진행한 후, 잠금해제되면 임시테이블 변경내용을 적용한다. | |
   | *Read Committed Snapshot (RCSI)* | 잠금을 사용하지 않고, 트랜잭션 시작 전에 가장 최근에 커밋된 스냅샷을 불러와 작업을 수행한다. | <font color="red">서로 다른 트랜잭션 사이에 Commit 내용의 충돌 위험</font><br><font color="sky-blue">→ 별도의 **충돌감지 및 처리** 기술과 함께 사용한다.</font> |
 
-  > <b>\* 공유 잠금 : </b>자원을 공유하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기)는 가능하지만 배타적 잠금(쓰기)은 걸 수 없다.<br>
-  > <b>\*\* 배타적 잠금 : </b>자원을 수정하기 위한 잠금으로, 다른 트랜잭션에서 공유 잠금(읽기), 배타적 잠금(수정)을 걸 수 없다.
+> ***용어주석***<br>
+  > 1\. **공유 잠금** : 자원을 공유하기 위한 잠금으로, 공유 잠금된 상태에서 다른 트랜잭션이 공유 잠금(읽기)은 걸 수 있지만 배타적 잠금(쓰기)은 걸 수 없다.<br>
+  > 2\. **배타적 잠금** : 자원을 수정하기 위한 잠금으로, 배타적 잠금된 상태에서 다른 트랜잭션이 공유 잠금(읽기), 배타적 잠금(수정)을 걸 수 없다.<br>
 
 - 트랜잭션 동시처리 이슈
   1. Dirty Read
@@ -452,7 +476,7 @@ CDC는 위와 같은 방식을 통해 변경 데이터를 추출한 다음, 내�
         <code>Read Uncommitted</code> 격리 수준에서 발생
 
       - **이슈** <br>
-        TRAN2 트랜잭션이 아직 커밋되지 않은 변경된 데이터를 읽었는데, TRAN1 트랜잭션이 롤백하여 ***의미없는 데이터를 가지게 되는 경우*** 를 'Dirty Read'라고 한다.
+        Read Uncommitted 격리수준에서는 다른 트랜잭션에서 수정 중인 (커밋되지 않은) 데이터를 읽을 수 있다. 만약 tran1 트랜잭션이 수정 중인 데이터를 tran2 트랜잭션이 읽었는데, tran1이 롤백되는 경우 tran2가 읽었던 데이터는 ***의미없는 데이터*** 가 된다. 이런 경우를 'Dirty Read'라고 한다.
 
       - **해결 방법** <br>
         커밋된 데이터만 읽는 Read Committed 이상의 격리 수준으로 해결할 수 있다.
@@ -465,10 +489,12 @@ CDC는 위와 같은 방식을 통해 변경 데이터를 추출한 다음, 내�
         <code>Read Uncommitted</code>, <code>Read Committed</code> 격리 수준에서 발생
 
       - **이슈** <br>
-        TRAN1이 여러 번 같은 데이터를 읽는 도중에 TRAN2가 데이터 변경 후 커밋하여 TRAN1 ***트랜잭션이 Read할 때마다 같은 데이터에서 다른 값을 읽게 되는 경우*** 를 'Non-Repeatable Read'라고 한다.
+        해당 이슈는 한 트랜잭션 내에서 같은 데이터를 여러 번 조회할 때, 도중에 다른 트랜잭션에서 해당 데이터가 수정되는 경우 ***조회할 때마다 조회 결과가 달라져*** 일관성이 떨어지는 경우를 의미한다.
+
+        예를 들어, 위 그림에서 tran1 트랜잭션이 id가 1인 데이터를 여러 번 읽는데, 도중에 tran2 트랜잭션이 해당 데이터를 변경하는 경우, tran1은 조회할 때마다 다른 조회 결과를 받게 된다.
 
       - **해결 방법** <br>
-        트랜잭션 내에서 같은 데이터를 여러 번 읽을 때 처음 Read한 값을 사용하도록 하는 Repeatable Read 이상의 격리 수준으로 해결할 수 있다.
+        트랜잭션 내에서 같은 데이터를 여러 번 조회할 때 처음 조회 시 생성된 snapshot에서 조회하도록 하는 Repeatable Read 이상의 격리 수준으로 해결할 수 있다.
 
   3. Phantom Read
 
@@ -478,7 +504,7 @@ CDC는 위와 같은 방식을 통해 변경 데이터를 추출한 다음, 내�
         <code>Read Uncommitted</code>, <code>Read Committed</code>, <code>Repeatable Read</code> 격리 수준에서 발생
 
       - **이슈** <br>
-        TRAN1 트랜잭션이 같은 데이터를 여러 번 읽는 도중에 TRAN2가 데이터를 추가/삭제하여 TRAN1 ***트랜잭션 도중에 읽을 데이터가 추가*** 되거나 ***존재하지 않는 데이터를 가지게 된 경우*** 를 'Phantom Read(가상 읽기)'라고 한다.
+        tran1 트랜잭션이 같은 데이터를 여러 번 조회하는 도중에 tran2 트랜잭션이 데이터를 추가/삭제하여 ***조회할 데이터가 추가*** 되거나 ***존재하지 않는 데이터를 가지게 된 경우*** 를 'Phantom Read(가상 읽기)'라고 한다.
 
       - **해결 방법** <br>
         공유 잠금, 배타적 잠금을 수행하는 Serializable 이상의 격리 수준으로 해결한다.
