@@ -53,28 +53,47 @@ public class LoginRestController {
     public ResponseEntity<Map<String, Object>> hasAuth(HttpServletRequest request) throws GeneralSecurityException, IOException {
     	String loginType = request.getHeader("loginType");
         String jws = request.getHeader("jws");
-    	logger.debug("hasAuth login-type = {}, jws = {}", loginType, jws);
-    	boolean hasAuth = jws != null && memberService.hasAuth(loginType, jws);
-    	logger.debug("hasAuth = {}", hasAuth);
+    	boolean hasAuth = jws != null;
 
     	Map<String, Object> model = new HashMap<>();
-    	model.put("hasAuth", hasAuth);
     	if (hasAuth) {
-            model.put("login-type", loginType);
-            model.put("jws", jws);
+    	    String username = memberService.getSubject(loginType, jws);
+    	    hasAuth = username != null;
+    	    if (hasAuth) {
+                model.put("loginType", loginType);
+                model.put("jws", jws);
+                model.put("username", username);
+            }
         }
+    	model.put("hasAuth", hasAuth);
 
     	return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
     @PostMapping("/api/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Member member) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Member member) throws GeneralSecurityException, IOException {
         String jws = memberService.doLogin(member);
         boolean hasAuth = jws != null;
+        String username = memberService.getSubject("", jws);
 
         Map<String, Object> model = new HashMap<>();
         model.put("jws", jws);
         model.put("hasAuth", hasAuth);
+        model.put("username", username);
+
+        return new ResponseEntity<>(model, HttpStatus.OK);
+    }
+
+    @PostMapping("/api/login/oauth")
+    public ResponseEntity<Map<String, Object>> oauthLogin(@RequestBody Map<String, Object> loginParams) throws GeneralSecurityException, IOException {
+        String token = memberService.doLogin(loginParams);
+        boolean hasAuth = token != null;
+        String username = memberService.getSubject((String) loginParams.get("loginType"), token);
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("token", token);
+        model.put("hasAuth", hasAuth);
+        model.put("username", username);
 
         return new ResponseEntity<>(model, HttpStatus.OK);
     }

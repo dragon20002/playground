@@ -23,7 +23,7 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 			throws Exception {
 		String loginType = request.getHeader("loginType");
 		String jws = request.getHeader("jws");
-		boolean hasAuth = memberService.hasAuth(loginType, jws);
+		boolean hasAuth = memberService.getSubject(loginType, jws) != null;
 
 		if (!hasAuth) {
 			response.sendRedirect("/error/unauthorized");
