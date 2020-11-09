@@ -6,6 +6,7 @@ import net.ldcc.playground.model.MemberSec;
 import net.ldcc.playground.util.GithubTokenProvider;
 import net.ldcc.playground.util.GoogleTokenProvider;
 import net.ldcc.playground.util.JwtTokenProvider;
+import net.ldcc.playground.util.KakaoTokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -26,16 +27,19 @@ public class MemberService {
     private final JwtTokenProvider jwtTokenProvider;
     private final GoogleTokenProvider googleTokenProvider;
     private final GithubTokenProvider githubTokenProvider;
+    private final KakaoTokenProvider kakaoTokenProvider;
 
     public MemberService(MemberDao memberDao, BCryptPasswordEncoder bCryptPasswordEncoder,
                          JwtTokenProvider jwtTokenProvider,
                          GoogleTokenProvider googleTokenProvider,
-                         GithubTokenProvider githubTokenProvider) {
+                         GithubTokenProvider githubTokenProvider,
+                         KakaoTokenProvider kakaoTokenProvider) {
         this.memberDao = memberDao;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.googleTokenProvider = googleTokenProvider;
         this.githubTokenProvider = githubTokenProvider;
+        this.kakaoTokenProvider = kakaoTokenProvider;
     }
 
     public Member getMember(Long id) {
@@ -67,6 +71,7 @@ public class MemberService {
         return switch (loginType) {
             case "google" -> googleTokenProvider.getSubject(jws);
             case "github" -> githubTokenProvider.getSubject(jws);
+            case "kakao" -> kakaoTokenProvider.getSubject(jws);
             default -> jwtTokenProvider.getSubject(jws);
         };
     }
@@ -90,7 +95,8 @@ public class MemberService {
         return switch (loginType) {
 //            case "google" -> null;
             case "github" -> githubTokenProvider.createToken((String) loginParams.get("code"), (String) loginParams.get("state"));
-            case "kakao" -> null;
+            case "kakao" -> kakaoTokenProvider.createToken((String) loginParams.get("code"), (String) loginParams.get("state"),
+                    (String) loginParams.get("redirectUri"));
             default -> null;
         };
     }
