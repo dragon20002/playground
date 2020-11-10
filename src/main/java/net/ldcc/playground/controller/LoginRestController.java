@@ -1,6 +1,7 @@
 package net.ldcc.playground.controller;
 
 import net.ldcc.playground.model.Member;
+import net.ldcc.playground.model.MemberSec;
 import net.ldcc.playground.service.MemberService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,17 +53,18 @@ public class LoginRestController {
     @GetMapping("/api/login/has-auth")
     public ResponseEntity<Map<String, Object>> hasAuth(HttpServletRequest request) throws GeneralSecurityException, IOException {
     	String loginType = request.getHeader("loginType");
-        String jws = request.getHeader("jws");
+        String jws = request.getHeader("token");
     	boolean hasAuth = jws != null;
 
     	Map<String, Object> model = new HashMap<>();
     	if (hasAuth) {
-    	    String username = memberService.getSubject(loginType, jws);
-    	    hasAuth = username != null;
+    	    MemberSec member = memberService.getLoginUserInfo(loginType, jws);
+    	    hasAuth = member != null;
     	    if (hasAuth) {
                 model.put("loginType", loginType);
-                model.put("jws", jws);
-                model.put("username", username);
+                model.put("token", jws);
+                model.put("imageUrl", member.getImageUrl());
+                model.put("name", member.getName());
             }
         }
     	model.put("hasAuth", hasAuth);
@@ -73,13 +75,17 @@ public class LoginRestController {
     @PostMapping("/api/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Member member) throws GeneralSecurityException, IOException {
         String jws = memberService.doLogin(member);
-        boolean hasAuth = jws != null;
-        String username = memberService.getSubject("", jws);
+        MemberSec loginUserInfo = memberService.getLoginUserInfo("", jws);
 
         Map<String, Object> model = new HashMap<>();
-        model.put("jws", jws);
-        model.put("hasAuth", hasAuth);
-        model.put("username", username);
+        if (loginUserInfo != null) {
+            model.put("token", jws);
+            model.put("hasAuth", true);
+            model.put("imageUrl", loginUserInfo.getImageUrl());
+            model.put("name", loginUserInfo.getName());
+        } else {
+            model.put("hasAuth", false);
+        }
 
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
@@ -87,15 +93,34 @@ public class LoginRestController {
     @PostMapping("/api/login/oauth")
     public ResponseEntity<Map<String, Object>> oauthLogin(@RequestBody Map<String, Object> loginParams) throws GeneralSecurityException, IOException {
         String token = memberService.doLogin(loginParams);
-        boolean hasAuth = token != null;
-        String username = memberService.getSubject((String) loginParams.get("loginType"), token);
+        MemberSec loginUserInfo = memberService.getLoginUserInfo((String) loginParams.get("loginType"), token);
 
         Map<String, Object> model = new HashMap<>();
-        model.put("token", token);
-        model.put("hasAuth", hasAuth);
-        model.put("username", username);
+        if (loginUserInfo != null) {
+            model.put("token", token);
+            model.put("hasAuth", true);
+            model.put("imageUrl", loginUserInfo.getImageUrl());
+            model.put("name", loginUserInfo.getName());
+        } else {
+            model.put("hasAuth", false);
+        }
 
         return new ResponseEntity<>(model, HttpStatus.OK);
+    }
+
+    @GetMapping("/api/login/get-user-info")
+    public ResponseEntity<MemberSec> getUserInfo(HttpServletRequest request) throws GeneralSecurityException, IOException {
+        String loginType = request.getHeader("loginType");
+        String jws = request.getHeader("token");
+        boolean hasAuth = jws != null;
+
+        if (hasAuth) {
+            MemberSec member;
+            member = memberService.getLoginUserInfo(loginType, jws);
+            return new ResponseEntity<>(member, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
     }
 
 }

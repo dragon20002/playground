@@ -1,5 +1,7 @@
 package net.ldcc.playground.util;
 
+import net.ldcc.playground.model.Member;
+import net.ldcc.playground.model.MemberSec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -53,7 +55,7 @@ public class GithubTokenProvider {
         return null;
     }
 
-    public String getSubject(String token) {
+    public MemberSec getSubject(String token) {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.add("Authorization", String.format("token %s", token));
         header.add("Accept", "*/*");
@@ -64,11 +66,47 @@ public class GithubTokenProvider {
                 new HttpEntity<>(header),
                 GithubVertifyResponse.class).getBody();
 
-        return (response != null) ? response.login : null;
+        if (response != null) {
+            return new MemberSec(null, response.login, response.name, response.email,
+                    null, null, null, response.avatarUrl);
+        } else {
+            return null;
+        }
     }
 
     static class GithubVertifyResponse {
         public String login;
+        public Long id;
+        public String nodeId;
+        public String avatarUrl;
+        public String gravatarId;
+        public String url;
+        public String htmlUrl;
+        public String followersUrl;
+        public String followingUrl;
+        public String gistsUrl;
+        public String starredUrl;
+        public String subscriptionsUrl;
+        public String organizationsUrl;
+        public String reposUrl;
+        public String eventsUrl;
+        public String receivedEventsUrl;
+        public String type;
+        public Boolean siteAdmin;
+        public String name;
+        public String company;
+        public String blog;
+        public String location;
+        public String email;
+        public Boolean hireable;
+        public String bio;
+        public String twitterUsername;
+        public Integer publicRepos;
+        public Integer publicGists;
+        public Integer followers;
+        public Integer following;
+        public String createdAt;
+        public String updatedAt;
     }
 
 }

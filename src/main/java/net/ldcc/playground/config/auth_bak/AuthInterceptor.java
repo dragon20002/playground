@@ -22,8 +22,8 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 		String loginType = request.getHeader("loginType");
-		String jws = request.getHeader("jws");
-		boolean hasAuth = memberService.getSubject(loginType, jws) != null;
+		String jws = request.getHeader("token");
+		boolean hasAuth = memberService.getLoginUserInfo(loginType, jws) != null;
 
 		if (!hasAuth) {
 			response.sendRedirect("/error/unauthorized");

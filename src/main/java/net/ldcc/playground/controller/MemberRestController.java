@@ -10,6 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 @DbType(profile = DbType.Profile.SECONDARY)
@@ -24,7 +27,7 @@ public class MemberRestController {
     }
 
     @GetMapping("/api/members/{id}")
-    public ResponseEntity<MemberSec> getMember(@PathVariable Long id) {
+    public ResponseEntity<MemberSec> getMember(HttpServletRequest request, @PathVariable Long id) {
         MemberSec member;
         try {
             member = memberService.getMemberSec(id);

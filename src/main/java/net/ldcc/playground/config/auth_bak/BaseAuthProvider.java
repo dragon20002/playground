@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
 
+// Not using current
 public class BaseAuthProvider implements AuthenticationProvider {
     private final Logger logger = LoggerFactory.getLogger(BaseAuthProvider.class);
 

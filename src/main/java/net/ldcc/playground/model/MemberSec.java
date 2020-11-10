@@ -17,10 +17,12 @@ public class MemberSec {
     private String telNo;
     private String address;
     private String exprDate;
+    private String imageUrl;
 
     public MemberSec() {}
 
-    public MemberSec(Long id, String userId, String name, String email, String telNo, String address, String exprDate) {
+    public MemberSec(Long id, String userId, String name, String email, String telNo, String address, String exprDate,
+                     String imageUrl) {
         this.id = id;
         this.userId = userId;
         this.name = name;
@@ -28,6 +30,7 @@ public class MemberSec {
         this.telNo = telNo;
         this.address = address;
         this.exprDate = exprDate;
+        this.imageUrl = imageUrl;
     }
 
     public Long getId() {
@@ -90,6 +93,14 @@ public class MemberSec {
         this.exprDate = exprDate;
     }
 
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     public boolean isAccountNonExpired() {
         // 1. 만료일자가 빈 경우, 유효
         if (exprDate == null || exprDate.length() == 0)
@@ -120,13 +131,14 @@ public class MemberSec {
     @Override
     public String toString() {
         return "MemberSec{" +
-                "id='" + id + '\'' +
+                "id=" + id +
                 ", userId='" + userId + '\'' +
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", telNo='" + telNo + '\'' +
                 ", address='" + address + '\'' +
                 ", exprDate='" + exprDate + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
                 '}';
     }
 }

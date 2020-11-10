@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.InputMismatchException;
 
+// Not using current
 public class AuthFilter extends UsernamePasswordAuthenticationFilter {
 
     public AuthFilter(AuthenticationManager authenticationManager) {

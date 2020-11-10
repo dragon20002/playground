@@ -1,17 +1,16 @@
 package net.ldcc.playground.util;
 
-import java.security.Key;
-import java.util.Date;
-
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
@@ -27,7 +26,10 @@ public class JwtTokenProvider {
 		this.exprTime = exprTime;
 	}
 
-	public String createToken(String subject) {
+	public String createToken(Long memberId) {
+		if (memberId == null || memberId <= 0)
+			return null;
+
 		Date issue = new Date(); //발행일시
 		Date expr = new Date(); //만료일시
 		expr.setTime(issue.getTime() + exprTime);
@@ -37,19 +39,19 @@ public class JwtTokenProvider {
 				.setIssuer(issuer)
 				.setIssuedAt(issue)
 				.setExpiration(expr)
-				.setSubject(subject)
+				.setSubject((String.valueOf(memberId)))
 				.signWith(key).compact();
 	}
 
-	public String getSubject(String jws) {
+	public Long getSubject(String token) {
 		Claims jwt = null;
 		try {
 			jwt	= Jwts.parserBuilder()
 					.setSigningKey(key)
 					.build()
-					.parseClaimsJws(jws).getBody();
+					.parseClaimsJws(token).getBody();
 		} catch(Exception e) {
-			logger.debug("Fail to validation of jws={}", jws);
+			logger.debug("Fail to validation of jws={}", token);
 		}
 
 		Date now = new Date();
@@ -60,7 +62,8 @@ public class JwtTokenProvider {
 			return null;
 		}
 
-		return jwt.getSubject();
+		String subject = jwt.getSubject();
+		return (subject != null) ? Long.parseLong(subject) : null;
 	}
 
 }

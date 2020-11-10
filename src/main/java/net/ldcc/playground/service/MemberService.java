@@ -67,12 +67,15 @@ public class MemberService {
         memberDao.deleteById(id);
     }
 
-    public String getSubject(String loginType, String jws) throws GeneralSecurityException, IOException {
+    public MemberSec getLoginUserInfo(String loginType, String jws) throws GeneralSecurityException, IOException {
         return switch (loginType) {
             case "google" -> googleTokenProvider.getSubject(jws);
             case "github" -> githubTokenProvider.getSubject(jws);
             case "kakao" -> kakaoTokenProvider.getSubject(jws);
-            default -> jwtTokenProvider.getSubject(jws);
+            default -> {
+                Long memberId = jwtTokenProvider.getSubject(jws);
+                yield (memberId != null) ? this.getMemberSec(memberId) : null;
+            }
         };
     }
 
@@ -85,7 +88,7 @@ public class MemberService {
                 .filter(Member::isAccountNonExpired)
                 .findFirst()
                 .filter(m -> bCryptPasswordEncoder.matches(password, m.getPassword()))
-                .map(m -> jwtTokenProvider.createToken(userId))
+                .map(m -> jwtTokenProvider.createToken(m.getId()))
                 .orElseThrow(() -> new BadCredentialsException("Invalid Password for " + userId));
     }
 

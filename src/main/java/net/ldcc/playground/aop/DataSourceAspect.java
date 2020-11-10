@@ -36,7 +36,7 @@ public class DataSourceAspect {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
 
         // > [DEBUG] Print StackTrace
-        Arrays.stream(stackTrace).forEach(t -> logger.debug("StackTrace : {}.{}", t.getClassName(), t.getMethodName()));
+        // Arrays.stream(stackTrace).forEach(t -> logger.debug("StackTrace : {}.{}", t.getClassName(), t.getMethodName()));
 
         // > Find the current method's position
         Iterator<StackTraceElement> iter = Arrays.stream(stackTrace).iterator();
@@ -90,7 +90,7 @@ public class DataSourceAspect {
         }
 
         // [DEBUG] Selected DbType Profile
-        logger.debug("DbType.Profile={}", profile);
+        // logger.debug("DbType.Profile={}", profile);
 
         // Switch data source
         @SuppressWarnings("rawtypes")

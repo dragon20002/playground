@@ -1,8 +1,10 @@
 package net.ldcc.playground.util;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import net.ldcc.playground.model.MemberSec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -21,13 +23,19 @@ public class GoogleTokenProvider {
 //        return null;
 //    }
 
-    public String getSubject(String token) throws GeneralSecurityException, IOException {
+    public MemberSec getSubject(String token) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(), new JacksonFactory())
                 .setAudience(Collections.singletonList(GOOGLE_CLIENT_ID))
                 .build();
 
-        return (String) verifier.verify(token).getPayload().get("name");
+        GoogleIdToken.Payload payload = verifier.verify(token).getPayload();
+        if (payload.getEmailVerified()) {
+            return new MemberSec(null, payload.getEmail(), (String) payload.get("name"), payload.getEmail(),
+                    null, null, null, (String) payload.get("picture"));
+        } else {
+            return null;
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package net.ldcc.playground.util;
 
+import net.ldcc.playground.model.MemberSec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -48,7 +49,7 @@ public class KakaoTokenProvider {
         return (response != null) ? response.accessToken : null;
     }
 
-    public String getSubject(String token) {
+    public MemberSec getSubject(String token) {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.add("Authorization", String.format("Bearer %s", token));
         header.add("Accept", "application/json");
@@ -81,7 +82,13 @@ public class KakaoTokenProvider {
                 new HttpEntity<>(header),
                 KakaoUserInfoResponse.class).getBody();
 
-        return (response != null) ? response.kakaoAccount.profile.nickname : null;
+        if (response != null) {
+            return new MemberSec(null, response.kakaoAccount.email, response.kakaoAccount.profile.nickname,
+                    response.kakaoAccount.email, null, null, null,
+                    response.kakaoAccount.profile.profileImageUrl);
+        } else {
+            return null;
+        }
     }
 
     static class KakaoTokenIssueResponse {

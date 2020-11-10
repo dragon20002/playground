@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+// Not using current
 public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
     private final Logger logger = LoggerFactory.getLogger(LoginSuccessHandler.class);
 
@@ -22,10 +23,10 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
         Member member = ((Member) authentication.getPrincipal());
-        String token = jwtTokenProvider.createToken(member.getUserId());
+        String token = jwtTokenProvider.createToken(member.getId());
         logger.debug("token={}", token);
 
-        response.addHeader("jws", token);
+        response.addHeader("token", token);
         response.setStatus(HttpServletResponse.SC_OK);
         response.sendRedirect("/api/login/doLogin");
     }

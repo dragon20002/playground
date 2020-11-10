@@ -31,7 +31,7 @@ public class BaseWebMvcConfigurer implements WebMvcConfigurer {
         AuthInterceptor authInterceptorAdapter = (AuthInterceptor) context.getBean("authInterceptor");
 
         registry.addInterceptor(authInterceptorAdapter)
-        		.addPathPatterns("/api/members/**");
+        		.addPathPatterns("/api/members/**", "/api/login/get-user-info");
     }
 
 }
