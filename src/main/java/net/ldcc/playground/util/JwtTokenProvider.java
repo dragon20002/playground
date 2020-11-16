@@ -26,8 +26,8 @@ public class JwtTokenProvider {
 		this.exprTime = exprTime;
 	}
 
-	public String createToken(Long memberId) {
-		if (memberId == null || memberId <= 0)
+	public String createToken(String memberId) {
+		if (memberId == null)
 			return null;
 
 		Date issue = new Date(); //발행일시
@@ -39,11 +39,11 @@ public class JwtTokenProvider {
 				.setIssuer(issuer)
 				.setIssuedAt(issue)
 				.setExpiration(expr)
-				.setSubject((String.valueOf(memberId)))
+				.setSubject(memberId)
 				.signWith(key).compact();
 	}
 
-	public Long getSubject(String token) {
+	public String getSubject(String token) {
 		Claims jwt = null;
 		try {
 			jwt	= Jwts.parserBuilder()
@@ -62,8 +62,7 @@ public class JwtTokenProvider {
 			return null;
 		}
 
-		String subject = jwt.getSubject();
-		return (subject != null) ? Long.parseLong(subject) : null;
+		return jwt.getSubject();
 	}
 
 }

@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
-public class KakaoTokenProvider {
+public class KakaoTokenProvider implements OAuthTokenProvider {
     private final Logger logger = LoggerFactory.getLogger(KakaoTokenProvider.class);
 
     private static final String REST_API_KEY = "edb60a1796c20a7eab7c98b12c550998";
@@ -25,6 +25,7 @@ public class KakaoTokenProvider {
         this.restTemplate = restTemplate;
     }
 
+    @Override
     public String createToken(String code, String state, String redirectUri) {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.add("Accept", "application/json");

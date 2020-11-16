@@ -3,10 +3,7 @@ package net.ldcc.playground.service;
 import net.ldcc.playground.dao.MemberDao;
 import net.ldcc.playground.model.Member;
 import net.ldcc.playground.model.MemberSec;
-import net.ldcc.playground.util.GithubTokenProvider;
-import net.ldcc.playground.util.GoogleTokenProvider;
-import net.ldcc.playground.util.JwtTokenProvider;
-import net.ldcc.playground.util.KakaoTokenProvider;
+import net.ldcc.playground.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -68,14 +65,15 @@ public class MemberService {
     }
 
     public MemberSec getLoginUserInfo(String loginType, String jws) throws GeneralSecurityException, IOException {
+        String subject = jwtTokenProvider.getSubject(jws);
+        if (subject == null)
+            return null;
+
         return switch (loginType) {
-            case "google" -> googleTokenProvider.getSubject(jws);
-            case "github" -> githubTokenProvider.getSubject(jws);
-            case "kakao" -> kakaoTokenProvider.getSubject(jws);
-            default -> {
-                Long memberId = jwtTokenProvider.getSubject(jws);
-                yield (memberId != null) ? this.getMemberSec(memberId) : null;
-            }
+            case "google" -> googleTokenProvider.getSubject(subject);
+            case "github" -> githubTokenProvider.getSubject(subject);
+            case "kakao" -> kakaoTokenProvider.getSubject(subject);
+            default -> this.getMemberSec(Long.valueOf(subject));
         };
     }
 
@@ -88,20 +86,30 @@ public class MemberService {
                 .filter(Member::isAccountNonExpired)
                 .findFirst()
                 .filter(m -> bCryptPasswordEncoder.matches(password, m.getPassword()))
-                .map(m -> jwtTokenProvider.createToken(m.getId()))
+                .map(m -> jwtTokenProvider.createToken(String.valueOf(m.getId())))
                 .orElseThrow(() -> new BadCredentialsException("Invalid Password for " + userId));
     }
 
     public String doLogin(Map<String, Object> loginParams) {
         String loginType = (String) loginParams.get("loginType");
 
-        return switch (loginType) {
-//            case "google" -> null;
-            case "github" -> githubTokenProvider.createToken((String) loginParams.get("code"), (String) loginParams.get("state"));
-            case "kakao" -> kakaoTokenProvider.createToken((String) loginParams.get("code"), (String) loginParams.get("state"),
-                    (String) loginParams.get("redirectUri"));
+        OAuthTokenProvider tokenProvider = switch (loginType) {
+            case "google" -> googleTokenProvider;
+            case "github" -> githubTokenProvider;
+            case "kakao" -> kakaoTokenProvider;
             default -> null;
         };
+
+        if (tokenProvider == null)
+            return null;
+
+        String oauthToken = tokenProvider.createToken((String) loginParams.get("code"),
+                (String) loginParams.get("state"),
+                (String) loginParams.get("redirectUri"));
+        if (oauthToken == null)
+            return null;
+
+        return jwtTokenProvider.createToken(oauthToken);
     }
 
 }

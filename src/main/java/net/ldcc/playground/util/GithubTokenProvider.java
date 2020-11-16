@@ -1,6 +1,5 @@
 package net.ldcc.playground.util;
 
-import net.ldcc.playground.model.Member;
 import net.ldcc.playground.model.MemberSec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class GithubTokenProvider {
+public class GithubTokenProvider implements OAuthTokenProvider {
     private final Logger logger = LoggerFactory.getLogger(GithubTokenProvider.class);
 
     private static final String CLIENT_ID = "2c1347aac22bb89c84f3";
@@ -29,7 +28,8 @@ public class GithubTokenProvider {
         this.restTemplate = restTemplate;
     }
 
-    public String createToken(String code, String state) {
+    @Override
+    public String createToken(String code, String state, String redirectUri) {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.add("Accept", "*/*");
 
@@ -55,6 +55,7 @@ public class GithubTokenProvider {
         return null;
     }
 
+    @Override
     public MemberSec getSubject(String token) {
         MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
         header.add("Authorization", String.format("token %s", token));

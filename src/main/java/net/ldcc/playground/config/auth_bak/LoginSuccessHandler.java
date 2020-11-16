@@ -23,7 +23,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
         Member member = ((Member) authentication.getPrincipal());
-        String token = jwtTokenProvider.createToken(member.getId());
+        String token = jwtTokenProvider.createToken(String.valueOf(member.getId()));
         logger.debug("token={}", token);
 
         response.addHeader("token", token);
