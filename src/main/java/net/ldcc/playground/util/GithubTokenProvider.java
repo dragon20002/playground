@@ -3,6 +3,7 @@ package net.ldcc.playground.util;
 import net.ldcc.playground.model.MemberSec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -15,17 +16,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class GithubTokenProvider implements OAuthTokenProvider {
+public class GithubTokenProvider extends OAuthTokenProvider {
     private final Logger logger = LoggerFactory.getLogger(GithubTokenProvider.class);
 
-    private static final String CLIENT_ID = "2c1347aac22bb89c84f3";
-    private static final String CLIENT_SECRET = "584fdfa0482457ad624a13042e8cf9e3817644da";
     private static final Pattern accessTokenPtn = Pattern.compile("access_token=(?<accessToken>[^&/]+)", Pattern.MULTILINE);
 
-    private final RestTemplate restTemplate;
-
-    public GithubTokenProvider(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public GithubTokenProvider(RestTemplate restTemplate,
+           @Value("${security.oauth.github.clientId}") String clientId,
+           @Value("${security.oauth.github.clientSecret}") String clientSecret) {
+        super(restTemplate, clientId, clientSecret);
     }
 
     @Override
@@ -34,8 +33,8 @@ public class GithubTokenProvider implements OAuthTokenProvider {
         header.add("Accept", "*/*");
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl("https://github.com/login/oauth/access_token")
-                .queryParam("client_id", CLIENT_ID)
-                .queryParam("client_secret", CLIENT_SECRET)
+                .queryParam("client_id", clientId)
+                .queryParam("client_secret", clientSecret)
                 .queryParam("code", code)
                 .queryParam("state", state);
 

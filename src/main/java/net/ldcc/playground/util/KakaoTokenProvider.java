@@ -3,6 +3,7 @@ package net.ldcc.playground.util;
 import net.ldcc.playground.model.MemberSec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -13,16 +14,13 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
-public class KakaoTokenProvider implements OAuthTokenProvider {
+public class KakaoTokenProvider extends OAuthTokenProvider {
     private final Logger logger = LoggerFactory.getLogger(KakaoTokenProvider.class);
 
-    private static final String REST_API_KEY = "edb60a1796c20a7eab7c98b12c550998";
-    private static final String CLIENT_SECRET = "ixKsmExJxEXAyJMQenZlz9DmdkVeLeSI";
-
-    private final RestTemplate restTemplate;
-
-    public KakaoTokenProvider(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public KakaoTokenProvider(RestTemplate restTemplate,
+           @Value("${security.oauth.kakao.clientId}") String clientId,
+           @Value("${security.oauth.kakao.clientSecret}") String clientSecret) {
+        super(restTemplate, clientId, clientSecret);
     }
 
     @Override
@@ -32,8 +30,8 @@ public class KakaoTokenProvider implements OAuthTokenProvider {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl("https://kauth.kakao.com/oauth/token")
                 .queryParam("grant_type", "authorization_code")
-                .queryParam("client_id", REST_API_KEY)
-                .queryParam("client_secret", CLIENT_SECRET)
+                .queryParam("client_id", clientId)
+                .queryParam("client_secret", clientSecret)
                 .queryParam("code", code)
                 .queryParam("state", state)
                 .queryParam("redirect_uri", redirectUri);

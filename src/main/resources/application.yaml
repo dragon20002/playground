@@ -51,6 +51,16 @@ security:
   jwt:
     issuer: local
     exprTime: 600000 #10분=600초
+  oauth:
+    google:
+      clientId: 451544914380-m657ri1nr9i2b1qeq8jb8p3o3bl1o8b0.apps.googleusercontent.com
+      clientSecret: OJ5e5rg1dMVdKsXNKyZQxCqZ
+    github:
+      clientId: 2c1347aac22bb89c84f3
+      clientSecret: 584fdfa0482457ad624a13042e8cf9e3817644da
+    kakao:
+      clientId: edb60a1796c20a7eab7c98b12c550998
+      clientSecret: ixKsmExJxEXAyJMQenZlz9DmdkVeLeSI
 
 --- #dev
 spring:
@@ -64,6 +74,16 @@ security:
   jwt:
     issuer: dev
     exprTime: 600000 #10분=600초
+  oauth:
+    google:
+      clientId: 451544914380-m657ri1nr9i2b1qeq8jb8p3o3bl1o8b0.apps.googleusercontent.com
+      clientSecret: OJ5e5rg1dMVdKsXNKyZQxCqZ
+    github:
+      clientId: 2c1347aac22bb89c84f3
+      clientSecret: 584fdfa0482457ad624a13042e8cf9e3817644da
+    kakao:
+      clientId: edb60a1796c20a7eab7c98b12c550998
+      clientSecret: ixKsmExJxEXAyJMQenZlz9DmdkVeLeSI
 
 --- #prod
 spring:
@@ -77,3 +97,13 @@ security:
   jwt:
     issuer: playground
     exprTime: 1800000 #30분=1800초
+  oauth:
+    google:
+      clientId: 451544914380-m657ri1nr9i2b1qeq8jb8p3o3bl1o8b0.apps.googleusercontent.com
+      clientSecret: OJ5e5rg1dMVdKsXNKyZQxCqZ
+    github:
+      clientId: 2c1347aac22bb89c84f3
+      clientSecret: 584fdfa0482457ad624a13042e8cf9e3817644da
+    kakao:
+      clientId: edb60a1796c20a7eab7c98b12c550998
+      clientSecret: ixKsmExJxEXAyJMQenZlz9DmdkVeLeSI

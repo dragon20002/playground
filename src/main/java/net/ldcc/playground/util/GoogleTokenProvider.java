@@ -7,6 +7,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import net.ldcc.playground.model.MemberSec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -20,16 +21,13 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 
 @Component
-public class GoogleTokenProvider implements OAuthTokenProvider {
+public class GoogleTokenProvider extends OAuthTokenProvider {
     private final Logger logger = LoggerFactory.getLogger(GoogleTokenProvider.class);
 
-    private static final String CLIENT_ID = "451544914380-m657ri1nr9i2b1qeq8jb8p3o3bl1o8b0.apps.googleusercontent.com";
-    private static final String CLIENT_SECRET = "OJ5e5rg1dMVdKsXNKyZQxCqZ";
-
-    private final RestTemplate restTemplate;
-
-    public GoogleTokenProvider(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public GoogleTokenProvider(RestTemplate restTemplate,
+           @Value("${security.oauth.google.clientId}") String clientId,
+           @Value("${security.oauth.google.clientSecret}") String clientSecret) {
+        super(restTemplate, clientId, clientSecret);
     }
 
     @Override
@@ -39,8 +37,8 @@ public class GoogleTokenProvider implements OAuthTokenProvider {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl("https://oauth2.googleapis.com/token")
                 .queryParam("grant_type", "authorization_code")
-                .queryParam("client_id", CLIENT_ID)
-                .queryParam("client_secret", CLIENT_SECRET)
+                .queryParam("client_id", clientId)
+                .queryParam("client_secret", clientSecret)
                 .queryParam("code", code)
                 .queryParam("state", state)
                 .queryParam("redirect_uri", redirectUri);
@@ -61,7 +59,7 @@ public class GoogleTokenProvider implements OAuthTokenProvider {
     public MemberSec getSubject(String token) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(), new JacksonFactory())
-                .setAudience(Collections.singletonList(CLIENT_ID))
+                .setAudience(Collections.singletonList(clientId))
                 .build();
 
         GoogleIdToken.Payload payload = verifier.verify(token).getPayload();
