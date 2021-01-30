@@ -83,6 +83,7 @@ public class LoginRestController {
             model.put("hasAuth", true);
             model.put("imageUrl", loginUserInfo.getImageUrl());
             model.put("name", loginUserInfo.getName());
+            model.put("loginType", "");
         } else {
             model.put("hasAuth", false);
         }
@@ -92,8 +93,9 @@ public class LoginRestController {
 
     @PostMapping("/api/login/oauth")
     public ResponseEntity<Map<String, Object>> oauthLogin(@RequestBody Map<String, Object> loginParams) throws GeneralSecurityException, IOException {
+        String loginType = (String) loginParams.get("loginType");
         String token = memberService.doLogin(loginParams);
-        MemberSec loginUserInfo = memberService.getLoginUserInfo((String) loginParams.get("loginType"), token);
+        MemberSec loginUserInfo = memberService.getLoginUserInfo(loginType, token);
 
         Map<String, Object> model = new HashMap<>();
         if (loginUserInfo != null) {
@@ -101,6 +103,7 @@ public class LoginRestController {
             model.put("hasAuth", true);
             model.put("imageUrl", loginUserInfo.getImageUrl());
             model.put("name", loginUserInfo.getName());
+            model.put("loginType", loginType);
         } else {
             model.put("hasAuth", false);
         }
