@@ -2,10 +2,10 @@ HELP.md
 .gradle
 build/
 bin/
+src/main/resources/application-local.yaml
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-!**/src/main/resources/application-local.yaml
 
 ### STS ###
 .apt_generated
