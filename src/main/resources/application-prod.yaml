@@ -1,0 +1,22 @@
+--- #prod
+spring:
+  profiles: prod
+server:
+  port: 80
+logging:
+  level:
+    root: error
+security:
+  jwt:
+    issuer: playground
+    exprTime: 1800000 #30분=1800초
+  oauth:
+    google:
+      clientId: 123
+      clientSecret: !@#
+    github:
+      clientId: 456
+      clientSecret: $%^
+    kakao:
+      clientId: 789
+      clientSecret: &*(

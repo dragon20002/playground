@@ -1,0 +1,22 @@
+--- #dev
+spring:
+  profiles: dev
+server:
+  port: 80
+logging:
+  level:
+    root: info
+security:
+  jwt:
+    issuer: dev
+    exprTime: 600000 #10분=600초
+  oauth:
+    google:
+      clientId: 123
+      clientSecret: !@#
+    github:
+      clientId: 456
+      clientSecret: $%^
+    kakao:
+      clientId: 789
+      clientSecret: &*(
