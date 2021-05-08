@@ -1,11 +1,18 @@
 package net.ldcc.playground.util;
 
 import net.ldcc.playground.model.MemberSec;
+import net.ldcc.playground.model.Role;
+import net.ldcc.playground.util.KakaoTokenProvider.KakaoUserInfoResponse.KakaoAccount;
+
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -18,8 +25,8 @@ public class KakaoTokenProvider extends OAuthTokenProvider {
     private final Logger logger = LoggerFactory.getLogger(KakaoTokenProvider.class);
 
     public KakaoTokenProvider(RestTemplate restTemplate,
-           @Value("${security.oauth.kakao.clientId}") String clientId,
-           @Value("${security.oauth.kakao.clientSecret}") String clientSecret) {
+           @Value("${spring.security.oauth.client.registration.kakao.client-id}") String clientId,
+           @Value("${spring.security.oauth.client.registration.kakao.client-secret}") String clientSecret) {
         super(restTemplate, clientId, clientSecret);
     }
 
@@ -82,13 +89,27 @@ public class KakaoTokenProvider extends OAuthTokenProvider {
                 KakaoUserInfoResponse.class).getBody();
 
         if (response != null) {
-            return new MemberSec(null, response.kakaoAccount.email, response.kakaoAccount.profile.nickname,
+        	List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(Role.USER.name()));
+            return new MemberSec(null, response.kakaoAccount.email, "kakao", response.kakaoAccount.profile.nickname,
                     response.kakaoAccount.email, null, null, null,
-                    response.kakaoAccount.profile.profileImageUrl);
+                    response.kakaoAccount.profile.profileImageUrl, authorities);
         } else {
             return null;
         }
     }
+
+	@Override
+	public MemberSec getSubject(Map<String, Object> attributes) {
+		KakaoAccount kakaoAccount = (KakaoAccount) attributes.getOrDefault("kakaoAccount", null);
+		if (kakaoAccount != null) {
+		List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(Role.USER.name()));
+		return new MemberSec(null, kakaoAccount.email, "kakao", kakaoAccount.profile.nickname,
+                kakaoAccount.email, null, null, null,
+                kakaoAccount.profile.profileImageUrl, authorities);
+		} else {
+			return null;
+		}
+	}
 
     static class KakaoTokenIssueResponse {
         public String tokenType;

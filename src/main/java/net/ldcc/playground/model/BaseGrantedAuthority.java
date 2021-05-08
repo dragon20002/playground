@@ -1,8 +1,15 @@
 package net.ldcc.playground.model;
 
-import org.springframework.security.core.GrantedAuthority;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
-import javax.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
 
 @Entity(name = "GRANTEDAUTH")
 @Table(name = "GRANTEDAUTH")
@@ -15,7 +22,8 @@ public class BaseGrantedAuthority implements GrantedAuthority {
     private Long memberId;
 
     @Column
-    private String authority;
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     public Long getId() {
         return id;
@@ -33,11 +41,12 @@ public class BaseGrantedAuthority implements GrantedAuthority {
         this.memberId = memberId;
     }
 
+    @Override
     public String getAuthority() {
-        return authority;
+        return role.name();
     }
 
     public void setAuthority(String authority) {
-        this.authority = authority;
+        this.role = Role.valueOf(authority);
     }
 }

@@ -93,8 +93,8 @@ public class DataSourceAspect {
         // logger.debug("DbType.Profile={}", profile);
 
         // Switch data source
-        @SuppressWarnings("rawtypes")
-        BaseDao dao = (BaseDao) context.getBean(cls);
+        @SuppressWarnings("unchecked")
+		BaseDao dao = (BaseDao) context.getBean(cls);
         Object result;
 
         // > Lock/UnLock data source

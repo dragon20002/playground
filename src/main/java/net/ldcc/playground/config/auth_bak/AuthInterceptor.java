@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 public class AuthInterceptor extends HandlerInterceptorAdapter {
 	private final Logger logger = LoggerFactory.getLogger(AuthInterceptor.class);
 
-//	private final JwtTokenProvider jwtTokenProvider;
 	MemberService memberService;
 
 	public AuthInterceptor(MemberService memberService) {

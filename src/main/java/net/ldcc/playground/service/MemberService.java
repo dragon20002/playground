@@ -1,19 +1,28 @@
 package net.ldcc.playground.service;
 
-import net.ldcc.playground.dao.MemberDao;
-import net.ldcc.playground.model.Member;
-import net.ldcc.playground.model.MemberSec;
-import net.ldcc.playground.util.*;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.List;
-import java.util.Map;
+import net.ldcc.playground.dao.MemberDao;
+import net.ldcc.playground.model.Member;
+import net.ldcc.playground.model.MemberSec;
+import net.ldcc.playground.util.GithubTokenProvider;
+import net.ldcc.playground.util.GoogleTokenProvider;
+import net.ldcc.playground.util.JwtTokenProvider;
+import net.ldcc.playground.util.KakaoTokenProvider;
+import net.ldcc.playground.util.OAuthTokenProvider;
 
 @Service
 public class MemberService {
@@ -56,13 +65,37 @@ public class MemberService {
     }
 
     public void postMember(Member member) {
-        member.setPassword(bCryptPasswordEncoder.encode(member.getPassword()));
+		member.setPassword(bCryptPasswordEncoder.encode(member.getPassword()));
         memberDao.save(member);
     }
 
     public void deleteMember(Long id) {
         memberDao.deleteById(id);
     }
+
+	public OAuth2User getOAuth2User(String loginType, String userNameAttributeName, Map<String, Object> attributes) {
+		OAuthTokenProvider tokenProvider = switch (loginType) {
+	        case "google" -> googleTokenProvider;
+	        case "github" -> githubTokenProvider;
+	        case "kakao" -> kakaoTokenProvider;
+	        default -> null;
+	    };
+	
+	    if (tokenProvider == null)
+	        return null;
+
+	    // Convert to Member
+	    MemberSec memberSec = tokenProvider.getSubject(attributes);
+	    Collection<? extends GrantedAuthority> authorities = memberSec.getAuthorities();
+
+	    // Save or Update
+	    Member member = memberDao.findByUserIdAndLoginType(memberSec.getUserId(), loginType);
+	    if (member == null) member = new Member();
+	    member.update(memberSec.getName(), memberSec.getEmail(), memberSec.getTelNo(), memberSec.getAddress(), memberSec.getExprDate());
+	    memberDao.saveOrUpdate(member);
+
+	    return new DefaultOAuth2User(authorities, attributes, userNameAttributeName);
+	}
 
     public MemberSec getLoginUserInfo(String loginType, String jws) throws GeneralSecurityException, IOException {
         String subject = jwtTokenProvider.getSubject(jws);

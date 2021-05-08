@@ -20,21 +20,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RestController
+@RestController("/api/login")
 public class LoginRestController {
     private static final Logger logger = LoggerFactory.getLogger(LoginRestController.class);
 
     @Autowired
     private MemberService memberService;
 
-    @PostMapping("/api/login/check-member-dup")
+    @PostMapping("/check-member-dup")
     public ResponseEntity<Boolean> checkMemberDup(@RequestBody Member member) {
         List<Member> memberList = memberService.getMembersByUserId(member.getUserId());
         Boolean isDup = memberList.stream().anyMatch(Member::isAccountNonExpired);
         return new ResponseEntity<>(isDup, HttpStatus.OK);
     }
 
-    @PostMapping("/api/login/create-member")
+    @PostMapping("/create-member")
     public ResponseEntity<Boolean> createMember(@RequestBody Member member) {
         List<Member> memberList = memberService.getMembersByUserId(member.getUserId());
         if (memberList.stream().anyMatch(Member::isAccountNonExpired))
@@ -50,7 +50,7 @@ public class LoginRestController {
         return new ResponseEntity<>(true, HttpStatus.OK);
     }
 
-    @GetMapping("/api/login/has-auth")
+    @GetMapping("/has-auth")
     public ResponseEntity<Map<String, Object>> hasAuth(HttpServletRequest request) throws GeneralSecurityException, IOException {
     	String loginType = request.getHeader("loginType");
         String jws = request.getHeader("token");
@@ -72,7 +72,7 @@ public class LoginRestController {
     	return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
-    @PostMapping("/api/login")
+    @PostMapping("/")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Member member) throws GeneralSecurityException, IOException {
         String jws = memberService.doLogin(member);
         MemberSec loginUserInfo = memberService.getLoginUserInfo("", jws);
@@ -91,7 +91,7 @@ public class LoginRestController {
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
-    @PostMapping("/api/login/oauth")
+    @PostMapping("/oauth")
     public ResponseEntity<Map<String, Object>> oauthLogin(@RequestBody Map<String, Object> loginParams) throws GeneralSecurityException, IOException {
         String loginType = (String) loginParams.get("loginType");
         String token = memberService.doLogin(loginParams);
@@ -111,7 +111,7 @@ public class LoginRestController {
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
-    @GetMapping("/api/login/get-user-info")
+    @GetMapping("/get-user-info")
     public ResponseEntity<MemberSec> getUserInfo(HttpServletRequest request) throws GeneralSecurityException, IOException {
         String loginType = request.getHeader("loginType");
         String jws = request.getHeader("token");

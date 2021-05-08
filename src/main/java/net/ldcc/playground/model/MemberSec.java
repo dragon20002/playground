@@ -1,36 +1,43 @@
 package net.ldcc.playground.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.Date;
 
-public class MemberSec {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+public class MemberSec implements UserDetails {
     private static final Logger logger = LoggerFactory.getLogger(MemberSec.class);
 
     private Long id;
     private String userId;
+    private String loginType;
     private String name;
     private String email;
     private String telNo;
     private String address;
     private String exprDate;
     private String imageUrl;
+    private Collection<? extends GrantedAuthority> authorities;
 
     public MemberSec() {}
 
-    public MemberSec(Long id, String userId, String name, String email, String telNo, String address, String exprDate,
-                     String imageUrl) {
+    public MemberSec(Long id, String userId, String loginType, String name, String email, String telNo, String address, String exprDate,
+                     String imageUrl, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.userId = userId;
+        this.loginType = loginType;
         this.name = name;
         this.email = email;
         this.telNo = telNo;
         this.address = address;
         this.exprDate = exprDate;
         this.imageUrl = imageUrl;
+        this.authorities = authorities;
     }
 
     public Long getId() {
@@ -53,6 +60,14 @@ public class MemberSec {
         this.userId = userId;
     }
 
+    public String getLoginType() {
+    	return loginType;
+    }
+    
+    public void setLoginType(String loginType) {
+    	this.loginType = loginType;
+    }
+    
     public String getName() {
         return name;
     }
@@ -128,6 +143,15 @@ public class MemberSec {
         return isAccountNonExpired();
     }
 
+	@Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        this.authorities = authorities;
+    }
+
     @Override
     public String toString() {
         return "MemberSec{" +
@@ -141,4 +165,10 @@ public class MemberSec {
                 ", imageUrl='" + imageUrl + '\'' +
                 '}';
     }
+
+	@Override
+	public String getPassword() {
+		return null;
+	}
+
 }

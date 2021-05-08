@@ -28,6 +28,11 @@ public class MemberDao extends BaseDao {
         return jdbcTemplate.queryForObject(sql, new Object[]{id}, new MemberSecRowMapper());
     }
 
+	public Member findByUserIdAndLoginType(String userId, String loginType) {
+		String sql = "SELECT * FROM MEMBER WHERE USER_ID = ? AND LOGIN_TYPE = ?";
+		return jdbcTemplate.queryForObject(sql, new Object[]{userId, loginType}, new MemberRowMapper());
+	}
+
     public List<MemberSec> findAllSec() {
         String sql = "SELECT ID, USER_ID, NAME, TEL_NO, EMAIL, ADDRESS, EXPR_DATE FROM MEMBER";
         return jdbcTemplate.query(sql, new Object[]{}, new MemberSecRowMapper());
@@ -43,6 +48,18 @@ public class MemberDao extends BaseDao {
                 " VALUES((SELECT SEQ_MEMBER_ID.NEXTVAL FROM DUAL), ?, ?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(sql, member.getUserId(), member.getPassword(), member.getName(), member.getEmail(),
                 member.getTelNo(), member.getAddress(), member.getExprDate());
+    }
+
+    public void update(Member member) {
+        String sql = "UPDATE MEMBER SET USER_ID=?, NAME=?, EMAIL=?, TEL_NO=?, ADDRESS=?, EXPR_DATE=?" +
+                " WHERE ID=?";
+        jdbcTemplate.update(sql, member.getUserId(), member.getName(), member.getEmail(),
+                member.getTelNo(), member.getAddress(), member.getExprDate(), member.getId());
+    }
+
+    public void saveOrUpdate(Member member) {
+    	if (member.getId() != null) save(member);
+    	else update(member);
     }
 
     public void deleteById(Long id) {
@@ -82,4 +99,5 @@ public class MemberDao extends BaseDao {
             return memberSec;
         }
     }
+
 }

@@ -1,6 +1,20 @@
 --- #prod
 spring:
   profiles: prod
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 123
+            client-secret: '!@#'
+            scope: profile, email
+          github:
+            client-id: 456
+            client-secret: '$%^'
+          kakao:
+            client-id: 789
+            client-secret: '&*('
 server:
   port: 80
 logging:
@@ -10,13 +24,3 @@ security:
   jwt:
     issuer: playground
     exprTime: 1800000 #30분=1800초
-  oauth:
-    google:
-      clientId: 123
-      clientSecret: !@#
-    github:
-      clientId: 456
-      clientSecret: $%^
-    kakao:
-      clientId: 789
-      clientSecret: &*(

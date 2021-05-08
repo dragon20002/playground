@@ -11,14 +11,14 @@ import javax.sql.DataSource;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
-@Controller
+@Controller("/")
 public class HomeController {
     private final Logger logger = LoggerFactory.getLogger(HomeController.class);
 
     @Autowired
     private DataSource dataSource;
 
-    @GetMapping
+    @GetMapping("/")
     public String home(Model model) throws SQLException {
         DatabaseMetaData dbMetaData = dataSource.getConnection().getMetaData();
 

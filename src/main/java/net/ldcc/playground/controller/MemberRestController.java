@@ -1,22 +1,27 @@
 package net.ldcc.playground.controller;
 
-import net.ldcc.playground.annotation.DbType;
-import net.ldcc.playground.model.Member;
-import net.ldcc.playground.model.MemberSec;
-import net.ldcc.playground.service.MemberService;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.List;
+import net.ldcc.playground.annotation.DbType;
+import net.ldcc.playground.model.Member;
+import net.ldcc.playground.model.MemberSec;
+import net.ldcc.playground.service.MemberService;
 
 @DbType(profile = DbType.Profile.SECONDARY)
-@RestController
+@RestController("/api/members")
 public class MemberRestController {
     private final Logger logger = LoggerFactory.getLogger(MemberRestController.class);
 
@@ -26,7 +31,7 @@ public class MemberRestController {
         this.memberService = memberService;
     }
 
-    @GetMapping("/api/members/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<MemberSec> getMember(HttpServletRequest request, @PathVariable Long id) {
         MemberSec member;
         try {
@@ -39,14 +44,14 @@ public class MemberRestController {
         return new ResponseEntity<>(member, HttpStatus.OK);
     }
 
-    @GetMapping("/api/members")
+    @GetMapping("/")
     public ResponseEntity<List<MemberSec>> getMembers() {
         List<MemberSec> memberList = memberService.getMembersSec();
 
         return new ResponseEntity<>(memberList, HttpStatus.OK);
     }
 
-    @PostMapping("/api/members")
+    @PostMapping("/")
     public ResponseEntity<Member> postMember(@RequestBody Member member) {
         try {
             memberService.postMember(member);
@@ -58,7 +63,7 @@ public class MemberRestController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/api/members/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMember(@PathVariable Long id) {
         try {
             memberService.deleteMember(id);

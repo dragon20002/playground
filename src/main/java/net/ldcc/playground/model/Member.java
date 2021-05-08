@@ -1,16 +1,26 @@
 package net.ldcc.playground.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import javax.persistence.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "MEMBER")
@@ -27,6 +37,9 @@ public class Member implements UserDetails {
     @Column
     private String password;
 
+    @Column
+    private String loginType;
+    
     @Column
     private String name;
 
@@ -49,9 +62,10 @@ public class Member implements UserDetails {
 
     public Member() {}
 
-    public Member(Long id, String userId, String name, String email, String telNo, String address, String exprDate) {
+    public Member(Long id, String userId, String loginType, String name, String email, String telNo, String address, String exprDate) {
         this.id = id;
         this.userId = userId;
+        this.loginType = loginType;
         this.name = name;
         this.email = email;
         this.telNo = telNo;
@@ -59,6 +73,14 @@ public class Member implements UserDetails {
         this.exprDate = exprDate;
     }
 
+    public void update(String name, String email, String telNo, String address, String exprDate) {
+        this.name = name;
+        this.email = email;
+        this.telNo = telNo;
+        this.address = address;
+        this.exprDate = exprDate;
+    }
+    
     public Long getId() {
         return id;
     }
@@ -88,6 +110,14 @@ public class Member implements UserDetails {
         this.password = password;
     }
 
+    public String getLoginType() {
+    	return loginType;
+    }
+    
+    public void setLoginType(String loginType) {
+    	this.loginType = loginType;
+    }
+    
     public String getName() {
         return name;
     }
